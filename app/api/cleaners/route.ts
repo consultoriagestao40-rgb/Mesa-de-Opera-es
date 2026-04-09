@@ -40,14 +40,18 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Acesso negado: Seu perfil possui apenas permissão de visualização. Contate um administrador para maiores permissões.' }, { status: 403 });
         }
 
-        const { name } = await request.json();
+        const { name, pis, secullumId } = await request.json();
 
         if (!name) {
             return NextResponse.json({ error: 'Name is required' }, { status: 400 });
         }
 
         const cleaner = await prisma.cleaner.create({
-            data: { name }
+            data: { 
+                name,
+                pis: pis || null,
+                secullumId: secullumId || null
+            }
         });
 
         return NextResponse.json({ cleaner });
@@ -72,7 +76,7 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: 'Acesso negado: Seu perfil possui apenas permissão de visualização. Contate um administrador para maiores permissões.' }, { status: 403 });
         }
 
-        const { id, name, active } = await request.json();
+        const { id, name, active, pis, secullumId } = await request.json();
 
         if (!id) {
             return NextResponse.json({ error: 'ID is required' }, { status: 400 });
@@ -82,7 +86,9 @@ export async function PUT(request: Request) {
             where: { id },
             data: {
                 name,
-                active
+                active,
+                pis: pis !== undefined ? (pis || null) : undefined,
+                secullumId: secullumId !== undefined ? (secullumId || null) : undefined
             }
         });
 

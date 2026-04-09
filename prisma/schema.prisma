@@ -112,12 +112,27 @@ model CleaningEvent {
 }
 
 model Cleaner {
-  id         String          @id @default(uuid())
-  name       String
-  active     Boolean         @default(true)
-  created_at DateTime        @default(now())
-  updated_at DateTime        @updatedAt
-  events     CleaningEvent[]
+  id          String          @id @default(uuid())
+  name        String
+  pis         String?         @unique
+  secullumId  String?         @unique
+  active      Boolean         @default(true)
+  created_at  DateTime        @default(now())
+  updated_at  DateTime        @updatedAt
+  events      CleaningEvent[]
+  alerts      AttendanceAlert[]
+}
+
+model AttendanceAlert {
+  id            String   @id @default(uuid())
+  cleaner_id    String
+  date          DateTime @default(now())
+  shift_start   DateTime
+  sent_at       DateTime @default(now())
+  whatsapp_sid  String?
+  cleaner       Cleaner  @relation(fields: [cleaner_id], references: [id])
+
+  @@index([cleaner_id, date])
 }
 
 model ScheduleChangeLog {

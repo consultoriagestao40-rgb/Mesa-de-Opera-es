@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Upload, History, Users, Settings, LogOut, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Upload, History, Users, Settings, LogOut, TrendingUp, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function Sidebar() {
@@ -31,6 +31,7 @@ export default function Sidebar() {
     const allMenuItems = [
         { name: 'Operação', href: '/dashboard', icon: Home, roles: ['ADMIN', 'OPERATOR', 'MANAGER', 'CLIENT'] },
         { name: 'Importar', href: '/dashboard/import', icon: Upload, roles: ['ADMIN', 'MANAGER'] },
+        { name: 'Presença', href: '/dashboard/attendance', icon: Clock, roles: ['ADMIN', 'OPERATOR', 'MANAGER'] },
         { name: 'KPIs', href: '/dashboard/kpi', icon: TrendingUp, roles: ['ADMIN', 'OPERATOR', 'MANAGER', 'CLIENT'] },
         { name: 'Histórico', href: '/dashboard/history', icon: History, roles: ['ADMIN', 'MANAGER', 'CLIENT'] },
         { name: 'Colaboradores', href: '/dashboard/cleaners', icon: Users, roles: ['ADMIN', 'OPERATOR', 'MANAGER'] },
