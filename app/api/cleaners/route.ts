@@ -13,12 +13,12 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const cleaners = await prisma.cleaner.findMany({
+        const collaborators = await prisma.collaborator.findMany({
             where: { active: true },
             orderBy: { name: 'asc' }
         });
 
-        return NextResponse.json({ cleaners });
+        return NextResponse.json({ cleaners: collaborators }); // Keep key for frontend compat temporarily
 
     } catch (error) {
         console.error('List Cleaners Error:', error);
@@ -40,21 +40,22 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Acesso negado: Seu perfil possui apenas permissão de visualização. Contate um administrador para maiores permissões.' }, { status: 403 });
         }
 
-        const { name, pis, secullumId } = await request.json();
+        const { name, pis, secullumId, posto } = await request.json();
 
         if (!name) {
             return NextResponse.json({ error: 'Name is required' }, { status: 400 });
         }
 
-        const cleaner = await prisma.cleaner.create({
+        const collaborator = await prisma.collaborator.create({
             data: { 
                 name,
                 pis: pis || null,
-                secullumId: secullumId || null
+                secullumId: secullumId || null,
+                posto: posto || null
             }
         });
 
-        return NextResponse.json({ cleaner });
+        return NextResponse.json({ cleaner: collaborator });
 
     } catch (error) {
         console.error('Create Cleaner Error:', error);
@@ -76,23 +77,24 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: 'Acesso negado: Seu perfil possui apenas permissão de visualização. Contate um administrador para maiores permissões.' }, { status: 403 });
         }
 
-        const { id, name, active, pis, secullumId } = await request.json();
+        const { id, name, active, pis, secullumId, posto } = await request.json();
 
         if (!id) {
             return NextResponse.json({ error: 'ID is required' }, { status: 400 });
         }
 
-        const cleaner = await prisma.cleaner.update({
+        const collaborator = await prisma.collaborator.update({
             where: { id },
             data: {
                 name,
                 active,
                 pis: pis !== undefined ? (pis || null) : undefined,
-                secullumId: secullumId !== undefined ? (secullumId || null) : undefined
+                secullumId: secullumId !== undefined ? (secullumId || null) : undefined,
+                posto: posto !== undefined ? (posto || null) : undefined
             }
         });
 
-        return NextResponse.json({ cleaner });
+        return NextResponse.json({ cleaner: collaborator });
 
     } catch (error) {
         console.error('Update Cleaner Error:', error);
@@ -121,24 +123,24 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ error: 'ID is required' }, { status: 400 });
         }
 
-        // Check if cleaner has history
-        const historyCount = await prisma.cleaningEvent.count({
-            where: { cleaner_id: id }
+        // Check if has cycles
+        const historyCount = await prisma.alertCycle.count({
+            where: { collaborator_id: id }
         });
 
         if (historyCount > 0) {
             // Soft delete (deactivate) if has history
-            await prisma.cleaner.update({
+            await prisma.collaborator.update({
                 where: { id },
                 data: { active: false }
             });
-            return NextResponse.json({ message: 'Cleaner deactivated due to existing history' });
+            return NextResponse.json({ message: 'Collaborator deactivated due to existing history' });
         } else {
             // Hard delete if no history
-            await prisma.cleaner.delete({
+            await prisma.collaborator.delete({
                 where: { id }
             });
-            return NextResponse.json({ message: 'Cleaner deleted' });
+            return NextResponse.json({ message: 'Collaborator deleted' });
         }
 
     } catch (error) {

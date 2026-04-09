@@ -1,35 +1,46 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Loader2, Plus, Trash2, Edit2, X, Check, AlertTriangle } from 'lucide-react';
+import { Loader2, Plus, Trash2, Edit2, X, Check, AlertTriangle, Briefcase, User as UserIcon } from 'lucide-react';
 
-interface Cleaner {
+interface Collaborator {
     id: string;
     name: string;
     active: boolean;
+    posto?: string;
+    pis?: string;
+    secullumId?: string;
 }
 
-export default function CleanersPage() {
-    const [cleaners, setCleaners] = useState<Cleaner[]>([]);
+export default function CollaboratorsPage() {
+    const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
     const [loading, setLoading] = useState(true);
+    
+    // Create State
     const [newName, setNewName] = useState('');
+    const [newPosto, setNewPosto] = useState('');
+    const [newPis, setNewPis] = useState('');
+    const [newSecullumId, setNewSecullumId] = useState('');
     const [adding, setAdding] = useState(false);
 
     // Edit State
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editName, setEditName] = useState('');
+    const [editPosto, setEditPosto] = useState('');
+    const [editPis, setEditPis] = useState('');
+    const [editSecullumId, setEditSecullumId] = useState('');
     const [updating, setUpdating] = useState(false);
 
     // Delete State
-    const [cleanerToDelete, setCleanerToDelete] = useState<Cleaner | null>(null);
+    const [itemToDelete, setItemToDelete] = useState<Collaborator | null>(null);
     const [deleting, setDeleting] = useState(false);
 
-    const fetchCleaners = async () => {
+    const fetchCollaborators = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/cleaners');
+            const res = await fetch('/api/cleaners'); // Kept endpoint name for now
             if (res.ok) {
                 const data = await res.json();
-                setCleaners(data.cleaners);
+                setCollaborators(data.cleaners);
             }
         } catch (error) {
             console.error(error);
@@ -39,7 +50,7 @@ export default function CleanersPage() {
     };
 
     useEffect(() => {
-        fetchCleaners();
+        fetchCollaborators();
     }, []);
 
     const handleAdd = async (e: React.FormEvent) => {
@@ -51,12 +62,20 @@ export default function CleanersPage() {
             const res = await fetch('/api/cleaners', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newName })
+                body: JSON.stringify({ 
+                    name: newName,
+                    posto: newPosto,
+                    pis: newPis,
+                    secullumId: newSecullumId
+                })
             });
 
             if (res.ok) {
                 setNewName('');
-                fetchCleaners();
+                setNewPosto('');
+                setNewPis('');
+                setNewSecullumId('');
+                fetchCollaborators();
             } else {
                 alert('Erro ao adicionar colaborador');
             }
@@ -67,14 +86,16 @@ export default function CleanersPage() {
         }
     };
 
-    const startEdit = (cleaner: Cleaner) => {
-        setEditingId(cleaner.id);
-        setEditName(cleaner.name);
+    const startEdit = (item: Collaborator) => {
+        setEditingId(item.id);
+        setEditName(item.name || '');
+        setEditPosto(item.posto || '');
+        setEditPis(item.pis || '');
+        setEditSecullumId(item.secullumId || '');
     };
 
     const cancelEdit = () => {
         setEditingId(null);
-        setEditName('');
     };
 
     const saveEdit = async () => {
@@ -85,12 +106,19 @@ export default function CleanersPage() {
             const res = await fetch('/api/cleaners', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: editingId, name: editName, active: true })
+                body: JSON.stringify({ 
+                    id: editingId, 
+                    name: editName, 
+                    posto: editPosto,
+                    pis: editPis,
+                    secullumId: editSecullumId,
+                    active: true 
+                })
             });
 
             if (res.ok) {
                 setEditingId(null);
-                fetchCleaners();
+                fetchCollaborators();
             } else {
                 alert('Erro ao atualizar colaborador');
             }
@@ -102,17 +130,17 @@ export default function CleanersPage() {
     };
 
     const confirmDelete = async () => {
-        if (!cleanerToDelete) return;
+        if (!itemToDelete) return;
 
         setDeleting(true);
         try {
-            const res = await fetch(`/api/cleaners?id=${cleanerToDelete.id}`, {
+            const res = await fetch(`/api/cleaners?id=${itemToDelete.id}`, {
                 method: 'DELETE'
             });
 
             if (res.ok) {
-                setCleanerToDelete(null);
-                fetchCleaners();
+                setItemToDelete(null);
+                fetchCollaborators();
             } else {
                 alert('Erro ao excluir colaborador');
             }
@@ -124,134 +152,184 @@ export default function CleanersPage() {
     };
 
     return (
-        <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-gray-800">Colaboradores</h1>
+        <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="flex justify-between items-center">
+                <div>
+                   <h1 className="text-3xl font-black text-gray-900 tracking-tight">Gestão de Colaboradores</h1>
+                   <p className="text-gray-500 font-medium">Nexus Operacional • Base de Dados Secullum</p>
+                </div>
+            </div>
 
-            <div className="bg-white rounded shadow p-6">
-                <form onSubmit={handleAdd} className="flex gap-4 mb-8">
-                    <input
-                        type="text"
-                        value={newName}
-                        onChange={(e) => setNewName(e.target.value)}
-                        placeholder="Nome do colaborador"
-                        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
-                    />
-                    <button
-                        type="submit"
-                        disabled={adding || !newName.trim()}
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
-                    >
-                        {adding ? <Loader2 className="animate-spin w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                        Adicionar
-                    </button>
+            {/* Registration Form */}
+            <div className="bg-white rounded-[2rem] shadow-xl shadow-gray-100/50 p-8 border border-gray-100">
+                <h3 className="font-black text-gray-800 uppercase tracking-widest text-xs mb-6 flex items-center gap-2">
+                    <Plus size={16} className="text-blue-600" />
+                    Novo Colaborador
+                </h3>
+                <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="md:col-span-1">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Nome Completo</label>
+                        <input
+                            type="text"
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            placeholder="Ex: João Silva"
+                            className="w-full bg-gray-50 border-none rounded-2xl p-3 text-sm focus:ring-2 focus:ring-blue-500/20"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Posto / Local</label>
+                        <input
+                            type="text"
+                            value={newPosto}
+                            onChange={(e) => setNewPosto(e.target.value)}
+                            placeholder="Ex: Portaria A"
+                            className="w-full bg-gray-50 border-none rounded-2xl p-3 text-sm focus:ring-2 focus:ring-blue-500/20"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">ID Secullum</label>
+                        <input
+                            type="text"
+                            value={newSecullumId}
+                            onChange={(e) => setNewSecullumId(e.target.value)}
+                            placeholder="Ex: 12345"
+                            className="w-full bg-gray-50 border-none rounded-2xl p-3 text-sm focus:ring-2 focus:ring-blue-500/20"
+                        />
+                    </div>
+                    <div className="flex items-end">
+                        <button
+                            type="submit"
+                            disabled={adding || !newName.trim()}
+                            className="w-full bg-blue-600 text-white p-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            {adding ? <Loader2 className="animate-spin w-4 h-4" /> : <Check className="w-4 h-4" />}
+                            Cadastrar
+                        </button>
+                    </div>
                 </form>
+            </div>
+
+            {/* List Section */}
+            <div className="bg-white rounded-[2rem] shadow-xl shadow-gray-100/50 border border-gray-100 overflow-hidden">
+                <div className="p-6 border-b border-gray-50 bg-gray-50/30">
+                    <h3 className="font-black text-gray-800 uppercase tracking-widest text-sm">Base de Colaboradores Ativos</h3>
+                </div>
 
                 {loading ? (
-                    <div className="flex justify-center p-8">
-                        <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
+                    <div className="flex justify-center p-20">
+                        <Loader2 className="animate-spin h-12 w-12 text-blue-600" />
                     </div>
-                ) : cleaners.length === 0 ? (
-                    <p className="text-gray-500 text-center">Nenhum colaborador cadastrado.</p>
+                ) : collaborators.length === 0 ? (
+                    <div className="p-20 text-center">
+                        <UserIcon size={48} className="mx-auto text-gray-200 mb-4" />
+                        <p className="text-gray-400 font-bold">Nenhum colaborador encontrado.</p>
+                    </div>
                 ) : (
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead>
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {cleaners.map((cleaner) => (
-                                <tr key={cleaner.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {editingId === cleaner.id ? (
-                                            <input
-                                                type="text"
-                                                value={editName}
-                                                onChange={(e) => setEditName(e.target.value)}
-                                                className="w-full border rounded p-1"
-                                                autoFocus
-                                            />
-                                        ) : (
-                                            cleaner.name
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${cleaner.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                            {cleaner.active ? 'Ativo' : 'Inativo'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        {editingId === cleaner.id ? (
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={saveEdit}
-                                                    disabled={updating}
-                                                    className="text-green-600 hover:text-green-900"
-                                                >
-                                                    <Check size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={cancelEdit}
-                                                    disabled={updating}
-                                                    className="text-red-600 hover:text-red-900"
-                                                >
-                                                    <X size={18} />
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div className="flex justify-end gap-3">
-                                                <button
-                                                    onClick={() => startEdit(cleaner)}
-                                                    className="text-blue-600 hover:text-blue-900"
-                                                >
-                                                    <Edit2 size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => setCleanerToDelete(cleaner)}
-                                                    className="text-red-600 hover:text-red-900"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
-                                        )}
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="text-gray-400 text-[10px] font-black uppercase tracking-widest border-b border-gray-100">
+                                    <th className="px-8 py-5">Nome</th>
+                                    <th className="px-8 py-5">Posto</th>
+                                    <th className="px-8 py-5">Secullum ID</th>
+                                    <th className="px-8 py-5 text-right">Ações</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {collaborators.map((item) => (
+                                    <tr key={item.id} className="hover:bg-blue-50/30 transition-all group">
+                                        <td className="px-8 py-6 font-bold text-gray-800">
+                                            {editingId === item.id ? (
+                                                <input
+                                                    type="text"
+                                                    value={editName}
+                                                    onChange={(e) => setEditName(e.target.value)}
+                                                    className="w-full bg-white border border-blue-200 rounded-xl p-2 text-sm focus:ring-2 focus:ring-blue-500/20"
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400 uppercase">
+                                                        {item.name.charAt(0)}
+                                                    </div>
+                                                    {item.name}
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            {editingId === item.id ? (
+                                                <input
+                                                    type="text"
+                                                    value={editPosto}
+                                                    onChange={(e) => setEditPosto(e.target.value)}
+                                                    className="w-full bg-white border border-blue-200 rounded-xl p-2 text-sm focus:ring-2 focus:ring-blue-500/20"
+                                                />
+                                            ) : (
+                                                <span className="text-xs font-black text-gray-400 uppercase bg-gray-100 px-3 py-1 rounded-lg">
+                                                    {item.posto || 'Geral'}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-8 py-6 text-sm text-gray-500 font-medium">
+                                            {editingId === item.id ? (
+                                                <input
+                                                    type="text"
+                                                    value={editSecullumId}
+                                                    onChange={(e) => setEditSecullumId(e.target.value)}
+                                                    className="w-full bg-white border border-blue-200 rounded-xl p-2 text-sm focus:ring-2 focus:ring-blue-500/20"
+                                                />
+                                            ) : (
+                                                item.secullumId || '--'
+                                            )}
+                                        </td>
+                                        <td className="px-8 py-6 text-right">
+                                            {editingId === item.id ? (
+                                                <div className="flex justify-end gap-2">
+                                                    <button onClick={saveEdit} disabled={updating} className="p-2 bg-emerald-100 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all">
+                                                        {updating ? <Loader2 className="animate-spin w-4 h-4" /> : <Check size={18} />}
+                                                    </button>
+                                                    <button onClick={cancelEdit} disabled={updating} className="p-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-600 hover:text-white transition-all">
+                                                        <X size={18} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <button onClick={() => startEdit(item)} className="p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all">
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button onClick={() => setItemToDelete(item)} className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </div>
 
-            {/* Delete Confirmation Modal */}
-            {cleanerToDelete && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                            <AlertTriangle className="text-red-500" />
-                            Confirmar Exclusão
-                        </h3>
-                        <p className="text-gray-600 mb-6">
-                            Tem certeza que deseja excluir <strong>{cleanerToDelete.name}</strong>?
-                            <br />
-                            <span className="text-xs text-gray-500 mt-1 block">
-                                Se houver histórico, ele será apenas inativado.
-                            </span>
+            {/* Delete Modal */}
+            {itemToDelete && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl animate-in zoom-in duration-300">
+                        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mb-6">
+                            <AlertTriangle size={32} />
+                        </div>
+                        <h3 className="text-xl font-black text-gray-900 mb-2">Excluir Colaborador</h3>
+                        <p className="text-gray-500 text-sm mb-8">
+                            Você está prestes a remover <strong>{itemToDelete.name}</strong> da base operacional. Esta ação não pode ser desfeita.
                         </p>
-                        <div className="flex justify-end gap-3">
-                            <button
-                                onClick={() => setCleanerToDelete(null)}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
-                            >
-                                Cancelar
+                        <div className="flex gap-4">
+                            <button onClick={() => setItemToDelete(null)} className="flex-1 px-6 py-4 bg-gray-100 text-gray-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all">
+                                Melhor não
                             </button>
-                            <button
-                                onClick={confirmDelete}
-                                disabled={deleting}
-                                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-                            >
-                                {deleting ? 'Excluindo...' : 'Excluir'}
+                            <button onClick={confirmDelete} disabled={deleting} className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 shadow-lg shadow-red-200 transition-all disabled:opacity-50">
+                                {deleting ? 'Removendo...' : 'Sim, Excluir'}
                             </button>
                         </div>
                     </div>
