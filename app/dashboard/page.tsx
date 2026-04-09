@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { startOfDay, addDays, subDays, isSameDay, format, subHours } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Loader2, ChevronLeft, ChevronRight, Calendar, Search, FileText, Table, Play, Plus, Trash2, LogOut, RefreshCw, CheckCircle, X } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, Calendar, Search, FileText, Table, Play, Plus, Trash2, LogOut, RefreshCw, CheckCircle, X, MessageSquare } from 'lucide-react';
 import WebEventList from '@/components/dashboard/WebEventList';
 import EventDashboardList from '@/components/dashboard/EventList';
+import ChatSidebar from '@/components/dashboard/ChatSidebar';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -138,6 +139,7 @@ export default function DashboardPage() {
     const [showCompletedModal, setShowCompletedModal] = useState(false);
     const [showTotalYardModal, setShowTotalYardModal] = useState(false);
     const [showTotalCleanYardModal, setShowTotalCleanYardModal] = useState(false);
+    const [isChatOpen, setIsChatOpen] = useState(false);
     const [showYardStartModal, setShowYardStartModal] = useState(false);
     const [selectedYardVehicleId, setSelectedYardVehicleId] = useState<string | null>(null);
 
@@ -717,11 +719,21 @@ export default function DashboardPage() {
                             <RefreshCw size={20} />
                         </button>
                     </div>
-                    {canEdit && (
-                        <a href="/dashboard/import" className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 shadow-md shadow-blue-100 transition-all">
-                            Nova Importação
-                        </a>
-                    )}
+                    <div className="flex items-center gap-3">
+                        <button 
+                            onClick={() => setIsChatOpen(true)}
+                            className="p-2.5 bg-gray-900 text-blue-400 rounded-xl hover:bg-black transition-all shadow-lg border border-gray-800 flex items-center gap-2 group"
+                            title="Chat Operacional"
+                        >
+                            <MessageSquare size={20} className="group-hover:scale-110 transition-transform" />
+                            <span className="text-xs font-black uppercase tracking-widest pr-1">Chat Mesa</span>
+                        </button>
+                        {canEdit && (
+                            <a href="/dashboard/import" className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 shadow-md shadow-blue-100 transition-all">
+                                Nova Importação
+                            </a>
+                        )}
+                    </div>
                 </div>
 
                 {/* Original Colored Metric Cards (Vibrant like Foto 02) */}
@@ -1747,6 +1759,9 @@ export default function DashboardPage() {
                     </div>
                 </div>
             )}
+            
+            {/* Chat Sidebar Integration */}
+            <ChatSidebar isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
         </div>
     );
 }
