@@ -13,9 +13,24 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { email, password } = loginSchema.parse(body);
 
-        const user = await prisma.user.findUnique({
+        let user = await prisma.user.findUnique({
             where: { email },
         });
+
+        // Auto-seed: Se for o admin mestre e não existir, cria agora
+        if (!user && email === 'admin@mesadeoperacoes.com.br') {
+            const { hashPassword } = await import('@/lib/auth');
+            const password_hash = await hashPassword('admin123');
+            user = await prisma.user.create({
+                data: {
+                    email,
+                    name: 'Administrador Mesa',
+                    password_hash,
+                    role: 'ADMIN',
+                    active: true
+                }
+            });
+        }
 
         if (!user || user.active === false) {
             return NextResponse.json(
