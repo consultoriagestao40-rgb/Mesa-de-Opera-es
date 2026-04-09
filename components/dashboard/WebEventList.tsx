@@ -131,10 +131,10 @@ export default function WebEventList({ events, autoOpenEventId, userRole }: { ev
                     <thead className="bg-[#2563eb] text-white">
                         <tr>
                             <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-wider hidden lg:table-cell">Hora</th>
-                            <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-wider">Carro</th>
+                            <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-wider">Prefixo</th>
                             <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-wider hidden xl:table-cell">Saída</th>
-                            <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-wider hidden lg:table-cell">H-1 (Meta)</th>
-                            <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-wider">Colaborador</th>
+                            <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-wider hidden lg:table-cell">Meta (H-1)</th>
+                            <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-wider">Responsável</th>
                             <th className="py-4 px-4 text-center text-xs font-black uppercase tracking-wider">SLA</th>
                             <th className="py-4 px-4 text-center text-xs font-black uppercase tracking-wider hidden md:table-cell">Pátio</th>
                             <th className="py-4 px-4 text-center text-xs font-black uppercase tracking-wider">Status</th>
@@ -225,8 +225,8 @@ export default function WebEventList({ events, autoOpenEventId, userRole }: { ev
             {startModalOpen && selectedEvent && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]" onClick={() => setStartModalOpen(false)}>
                     <div className="bg-white rounded-xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-lg font-bold mb-4">Iniciar Limpeza</h3>
-                        <p className="text-sm text-gray-600 mb-4">Veículo: {selectedEvent.vehicle.client_vehicle_number}</p>
+                        <h3 className="text-lg font-bold mb-4">Iniciar Atendimento</h3>
+                        <p className="text-sm text-gray-600 mb-4">Unidade: {selectedEvent.vehicle.client_vehicle_number}</p>
                         <select
                             value={selectedCleaner}
                             onChange={(e) => setSelectedCleaner(e.target.value)}
@@ -253,7 +253,7 @@ export default function WebEventList({ events, autoOpenEventId, userRole }: { ev
             {swapModalOpen && selectedEvent && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]" onClick={() => setSwapModalOpen(false)}>
                     <div className="bg-white rounded-xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-lg font-bold mb-4">Trocar Veículo</h3>
+                        <h3 className="text-lg font-bold mb-4">Trocar Unidade</h3>
 
                         <div className="space-y-4 mb-6">
                             <div>
@@ -323,7 +323,7 @@ export default function WebEventList({ events, autoOpenEventId, userRole }: { ev
             {finishModalOpen && selectedEvent && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]" onClick={() => setFinishModalOpen(false)}>
                     <div className="bg-white rounded-xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-lg font-bold mb-4">Finalizar Limpeza</h3>
+                        <h3 className="text-lg font-bold mb-4">Finalizar Atendimento</h3>
 
                         {selectedEvent.revisar && (
                             <div className="mb-4 p-3 bg-orange-100 border border-orange-200 rounded-lg">
@@ -339,19 +339,19 @@ export default function WebEventList({ events, autoOpenEventId, userRole }: { ev
                         <div className="space-y-3 mb-6">
                             <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
                                 <input type="checkbox" checked={checkInterno} onChange={(e) => setCheckInterno(e.target.checked)} className="w-4 h-4 rounded text-blue-600" />
-                                <span className="text-sm font-semibold text-gray-700">Limpeza Interna OK</span>
+                                <span className="text-sm font-semibold text-gray-700">Checklist Etapa 01 OK</span>
                             </label>
                             <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
                                 <input type="checkbox" checked={checkExterno} onChange={(e) => setCheckExterno(e.target.checked)} className="w-4 h-4 rounded text-blue-600" />
-                                <span className="text-sm font-semibold text-gray-700">Limpeza Externa OK</span>
+                                <span className="text-sm font-semibold text-gray-700">Checklist Etapa 02 OK</span>
                             </label>
                             <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
                                 <input type="checkbox" checked={checkPneus} onChange={(e) => setCheckPneus(e.target.checked)} className="w-4 h-4 rounded text-blue-600" />
-                                <span className="text-sm font-semibold text-gray-700">Pretinho Pneus Aplicado OK</span>
+                                <span className="text-sm font-semibold text-gray-700">Checklist Etapa 03 OK</span>
                             </label>
                             <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
                                 <input type="checkbox" checked={checkBagageiros} onChange={(e) => setCheckBagageiros(e.target.checked)} className="w-4 h-4 rounded text-blue-600" />
-                                <span className="text-sm font-semibold text-gray-700">Limpeza dos Bagajeiros OK</span>
+                                <span className="text-sm font-semibold text-gray-700">Checklist Etapa 04 OK</span>
                             </label>
 
                             <div>

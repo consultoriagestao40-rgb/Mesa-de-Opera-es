@@ -69,7 +69,7 @@ export default function Sidebar() {
 
                 <div className={`flex items-center justify-center h-16 border-b border-gray-800 ${isCollapsed ? 'px-2' : 'px-4'}`}>
                     {isCollapsed ? (
-                        <span className="text-xs font-bold text-center">BM</span>
+                        <span className="text-xs font-bold text-center">MO</span>
                     ) : (
                         <img
                             src="https://grupojvsserv.com.br/wp-content/uploads/2023/11/logo-horizontal-300px.png"

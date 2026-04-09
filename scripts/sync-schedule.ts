@@ -483,10 +483,10 @@ async function run() {
 
         console.log(`PDF Generated at ${pdfPath}`);
 
-        // --- 5. Upload to BusManager ---
-        console.log('P6. Uploading to BusManager...');
+        // --- 5. Upload to Mesa de Operações ---
+        console.log('P6. Uploading to Mesa de Operações...');
 
-        // 5a. Login to BusManager to get Token
+        // 5a. Login to Mesa de Operações to get Token
         const authRes = await axios.post(`${APP_URL}/api/auth/login`, {
             email: APP_EMAIL,
             password: APP_PASSWORD
@@ -494,7 +494,7 @@ async function run() {
 
         // Extract token from cookie or response
         const cookies = authRes.headers['set-cookie'];
-        if (!cookies) throw new Error('Failed to retrieve auth cookie from BusManager login.');
+        if (!cookies) throw new Error('Failed to retrieve auth cookie from Mesa de Operações login.');
 
         const cookieHeader = cookies.join('; ');
 

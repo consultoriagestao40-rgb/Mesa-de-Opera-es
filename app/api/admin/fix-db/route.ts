@@ -154,7 +154,7 @@ export async function GET(request: Request) {
             <!DOCTYPE html>
             <html>
                 <head>
-                    <title>DB Diagnostic - BusManager</title>
+                    <title>DB Diagnostic - Mesa de Operações</title>
                     <meta charset="utf-8">
                     <style>
                         body { font-family: -apple-system, sans-serif; line-height: 1.5; max-width: 900px; margin: 40px auto; padding: 20px; background: #f8fafc; color: #1e293b; }

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BusManager - Sistema de Gestão",
-  description: "Sistema de gerenciamento de limpeza de ônibus",
+  title: "Mesa de Operações - Sistema de Gestão",
+  description: "Sistema de gerenciamento logístico e operacional",
   manifest: "/manifest.json",
   themeColor: "#1e40af",
   viewport: {
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "BusManager",
+    title: "Mesa Operações",
   },
   other: {
     'mobile-web-app-capable': 'yes',

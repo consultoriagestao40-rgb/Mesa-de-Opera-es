@@ -254,7 +254,7 @@ export async function sendSwapAlert(details: {
             `🕒 *Meta (H-1):* ${metaStr}\n` +
             `📝 *Motivo:* ${details.motivo}\n` +
             `👤 *Por:* ${details.usuario}\n\n` +
-            `Escala atualizada no BusManager! 🚌`;
+            `Escala atualizada no Mesa de Operações! 🚌`;
 
         await sendWhatsAppMessage(message);
     } catch (error) {

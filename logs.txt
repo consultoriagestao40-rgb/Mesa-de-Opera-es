@@ -33,7 +33,7 @@ sync	Set up job	2026-02-13T00:50:44.2370556Z Download action repository 'actions
 sync	Set up job	2026-02-13T00:50:44.4192189Z Complete job name: sync
 sync	Checkout Repo	﻿2026-02-13T00:50:44.4845687Z ##[group]Run actions/checkout@v4
 sync	Checkout Repo	2026-02-13T00:50:44.4846672Z with:
-sync	Checkout Repo	2026-02-13T00:50:44.4847217Z   repository: consultoriagestao40-rgb/BusManager
+sync	Checkout Repo	2026-02-13T00:50:44.4847217Z   repository: consultoriagestao40-rgb/Mesa de Operações
 sync	Checkout Repo	2026-02-13T00:50:44.4848176Z   token: ***
 sync	Checkout Repo	2026-02-13T00:50:44.4848682Z   ssh-strict: true
 sync	Checkout Repo	2026-02-13T00:50:44.4849179Z   ssh-user: git
@@ -47,18 +47,18 @@ sync	Checkout Repo	2026-02-13T00:50:44.4852939Z   lfs: false
 sync	Checkout Repo	2026-02-13T00:50:44.4853401Z   submodules: false
 sync	Checkout Repo	2026-02-13T00:50:44.4853923Z   set-safe-directory: true
 sync	Checkout Repo	2026-02-13T00:50:44.4854691Z ##[endgroup]
-sync	Checkout Repo	2026-02-13T00:50:44.6048454Z Syncing repository: consultoriagestao40-rgb/BusManager
+sync	Checkout Repo	2026-02-13T00:50:44.6048454Z Syncing repository: consultoriagestao40-rgb/Mesa de Operações
 sync	Checkout Repo	2026-02-13T00:50:44.6051066Z ##[group]Getting Git version info
-sync	Checkout Repo	2026-02-13T00:50:44.6052352Z Working directory is '/home/runner/work/BusManager/BusManager'
+sync	Checkout Repo	2026-02-13T00:50:44.6052352Z Working directory is '/home/runner/work/Mesa de Operações/Mesa de Operações'
 sync	Checkout Repo	2026-02-13T00:50:44.6054104Z [command]/usr/bin/git version
 sync	Checkout Repo	2026-02-13T00:50:44.6054942Z git version 2.52.0
 sync	Checkout Repo	2026-02-13T00:50:44.6057865Z ##[endgroup]
 sync	Checkout Repo	2026-02-13T00:50:44.6064371Z Temporarily overriding HOME='/home/runner/work/_temp/41f9ad7a-66f7-409f-b75a-cea93c9d7c48' before making global git config changes
 sync	Checkout Repo	2026-02-13T00:50:44.6066654Z Adding repository directory to the temporary git global config as a safe directory
-sync	Checkout Repo	2026-02-13T00:50:44.6078318Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/BusManager/BusManager
-sync	Checkout Repo	2026-02-13T00:50:44.6116089Z Deleting the contents of '/home/runner/work/BusManager/BusManager'
+sync	Checkout Repo	2026-02-13T00:50:44.6078318Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Mesa de Operações/Mesa de Operações
+sync	Checkout Repo	2026-02-13T00:50:44.6116089Z Deleting the contents of '/home/runner/work/Mesa de Operações/Mesa de Operações'
 sync	Checkout Repo	2026-02-13T00:50:44.6120150Z ##[group]Initializing the repository
-sync	Checkout Repo	2026-02-13T00:50:44.6124500Z [command]/usr/bin/git init /home/runner/work/BusManager/BusManager
+sync	Checkout Repo	2026-02-13T00:50:44.6124500Z [command]/usr/bin/git init /home/runner/work/Mesa de Operações/Mesa de Operações
 sync	Checkout Repo	2026-02-13T00:50:44.6207583Z hint: Using 'master' as the name for the initial branch. This default branch name
 sync	Checkout Repo	2026-02-13T00:50:44.6209284Z hint: will change to "main" in Git 3.0. To configure the initial branch name
 sync	Checkout Repo	2026-02-13T00:50:44.6211100Z hint: to use in all of your new repositories, which will suppress this warning,
@@ -72,8 +72,8 @@ sync	Checkout Repo	2026-02-13T00:50:44.6218159Z hint:
 sync	Checkout Repo	2026-02-13T00:50:44.6218860Z hint: 	git branch -m <name>
 sync	Checkout Repo	2026-02-13T00:50:44.6219551Z hint:
 sync	Checkout Repo	2026-02-13T00:50:44.6220517Z hint: Disable this message with "git config set advice.defaultBranchName false"
-sync	Checkout Repo	2026-02-13T00:50:44.6222011Z Initialized empty Git repository in /home/runner/work/BusManager/BusManager/.git/
-sync	Checkout Repo	2026-02-13T00:50:44.6224948Z [command]/usr/bin/git remote add origin https://github.com/consultoriagestao40-rgb/BusManager
+sync	Checkout Repo	2026-02-13T00:50:44.6222011Z Initialized empty Git repository in /home/runner/work/Mesa de Operações/Mesa de Operações/.git/
+sync	Checkout Repo	2026-02-13T00:50:44.6224948Z [command]/usr/bin/git remote add origin https://github.com/consultoriagestao40-rgb/Mesa de Operações
 sync	Checkout Repo	2026-02-13T00:50:44.6259036Z ##[endgroup]
 sync	Checkout Repo	2026-02-13T00:50:44.6260292Z ##[group]Disabling automatic garbage collection
 sync	Checkout Repo	2026-02-13T00:50:44.6264477Z [command]/usr/bin/git config --local gc.auto 0
@@ -89,7 +89,7 @@ sync	Checkout Repo	2026-02-13T00:50:44.7104439Z [command]/usr/bin/git config --l
 sync	Checkout Repo	2026-02-13T00:50:44.7137069Z ##[endgroup]
 sync	Checkout Repo	2026-02-13T00:50:44.7137885Z ##[group]Fetching the repository
 sync	Checkout Repo	2026-02-13T00:50:44.7145927Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +a0455154e22d0286031b48cf646d321b44c770f6:refs/remotes/origin/main
-sync	Checkout Repo	2026-02-13T00:50:45.2163077Z From https://github.com/consultoriagestao40-rgb/BusManager
+sync	Checkout Repo	2026-02-13T00:50:45.2163077Z From https://github.com/consultoriagestao40-rgb/Mesa de Operações
 sync	Checkout Repo	2026-02-13T00:50:45.2164238Z  * [new ref]         a0455154e22d0286031b48cf646d321b44c770f6 -> origin/main
 sync	Checkout Repo	2026-02-13T00:50:45.2193346Z ##[endgroup]
 sync	Checkout Repo	2026-02-13T00:50:45.2194550Z ##[group]Determining the checkout info
@@ -124,7 +124,7 @@ sync	Setup Node.js	2026-02-13T00:50:47.3547359Z Received 46137344 of 256967561 (
 sync	Setup Node.js	2026-02-13T00:50:48.3536914Z Received 171966464 of 256967561 (66.9%), 82.0 MBs/sec
 sync	Setup Node.js	2026-02-13T00:50:48.7964298Z Received 256967561 of 256967561 (100.0%), 100.3 MBs/sec
 sync	Setup Node.js	2026-02-13T00:50:48.7996410Z Cache Size: ~245 MB (256967561 B)
-sync	Setup Node.js	2026-02-13T00:50:48.8092320Z [command]/usr/bin/tar -xf /home/runner/work/_temp/ab64897f-2ee6-4e85-9976-c6cc1c83a049/cache.tzst -P -C /home/runner/work/BusManager/BusManager --use-compress-program unzstd
+sync	Setup Node.js	2026-02-13T00:50:48.8092320Z [command]/usr/bin/tar -xf /home/runner/work/_temp/ab64897f-2ee6-4e85-9976-c6cc1c83a049/cache.tzst -P -C /home/runner/work/Mesa de Operações/Mesa de Operações --use-compress-program unzstd
 sync	Setup Node.js	2026-02-13T00:50:49.1043386Z Cache restored successfully
 sync	Setup Node.js	2026-02-13T00:50:49.1347518Z Cache restored from key: node-cache-Linux-x64-npm-cda2bb4ee23f2c13cbb458c7af3e5686de54cf23cffc029c6a9f57dc6bda962c
 sync	Install Dependencies	﻿2026-02-13T00:50:49.1479974Z ##[group]Run npm ci
@@ -205,8 +205,8 @@ sync	Run Sync Script	2026-02-13T00:51:58.3615509Z Report found in frame after JS
 sync	Run Sync Script	2026-02-13T00:51:58.3616121Z JS Execution successful! Content verified.
 sync	Run Sync Script	2026-02-13T00:51:58.3616428Z P4. Executing Search...
 sync	Run Sync Script	2026-02-13T00:52:03.3707077Z P5. Exporting PDF...
-sync	Run Sync Script	2026-02-13T00:52:06.8937125Z PDF Generated at /home/runner/work/BusManager/BusManager/schedule.pdf
-sync	Run Sync Script	2026-02-13T00:52:06.8938012Z P6. Uploading to BusManager...
+sync	Run Sync Script	2026-02-13T00:52:06.8937125Z PDF Generated at /home/runner/work/Mesa de Operações/Mesa de Operações/schedule.pdf
+sync	Run Sync Script	2026-02-13T00:52:06.8938012Z P6. Uploading to Mesa de Operações...
 sync	Run Sync Script	2026-02-13T00:52:09.7037202Z Upload Success: {
 sync	Run Sync Script	2026-02-13T00:52:09.7037661Z   success: true,
 sync	Run Sync Script	2026-02-13T00:52:09.7038251Z   importId: 'ec90644a-b92e-4424-a720-7567f25244ea',
@@ -225,7 +225,7 @@ sync	Post Checkout Repo	2026-02-13T00:52:10.0928862Z [command]/usr/bin/git versi
 sync	Post Checkout Repo	2026-02-13T00:52:10.0962810Z git version 2.52.0
 sync	Post Checkout Repo	2026-02-13T00:52:10.1002840Z Temporarily overriding HOME='/home/runner/work/_temp/7688bf44-e0ad-44b0-bbf9-653f94c5cc3f' before making global git config changes
 sync	Post Checkout Repo	2026-02-13T00:52:10.1004604Z Adding repository directory to the temporary git global config as a safe directory
-sync	Post Checkout Repo	2026-02-13T00:52:10.1009675Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/BusManager/BusManager
+sync	Post Checkout Repo	2026-02-13T00:52:10.1009675Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Mesa de Operações/Mesa de Operações
 sync	Post Checkout Repo	2026-02-13T00:52:10.1044369Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
 sync	Post Checkout Repo	2026-02-13T00:52:10.1078057Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
 sync	Post Checkout Repo	2026-02-13T00:52:10.1269708Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader

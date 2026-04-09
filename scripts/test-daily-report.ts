@@ -88,7 +88,7 @@ async function generateDailyReport(targetDate: Date = subDays(new Date(), 1)) {
         `🛢️ *Limpezas de Pátio:* ${yardCleaned}\n\n` +
         `👤 *Produtividade por Equipe:*\n` +
         sortedRanking.map(([name, count]) => `▪️ ${name}: ${count} carro(s)`).join('\n') +
-        `\n\n_Relatório gerado automaticamente pelo BusManager_ 🚌`;
+        `\n\n_Relatório gerado automaticamente pelo Mesa de Operações_ 🚌`;
 
     console.log('\n--- MENSAGEM FINAL ---');
     console.log(message);

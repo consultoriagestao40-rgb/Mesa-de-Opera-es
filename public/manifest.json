@@ -1,6 +1,6 @@
 {
-    "name": "BusManager - Sistema de Gestão",
-    "short_name": "BusManager",
+    "name": "Mesa de Operações - Sistema de Gestão",
+    "short_name": "Mesa de Operações",
     "description": "Sistema de gerenciamento de limpeza de ônibus",
     "start_url": "/dashboard",
     "display": "standalone",

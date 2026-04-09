@@ -751,7 +751,7 @@ export default function DashboardPage() {
                         <p className="text-4xl font-black text-blue-800">{inProgressList.length}</p>
                     </div>
                     <div className="bg-[#F0FDF4] p-5 rounded-2xl border-l-[6px] border-green-500 shadow-xl shadow-green-100/50 transform hover:-translate-y-1 transition-all cursor-pointer" onClick={() => setShowCompletedModal(true)}>
-                        <p className="text-[10px] font-black text-green-600 uppercase tracking-widest mb-1">Concluídos Escala</p>
+                        <p className="text-[10px] font-black text-green-600 uppercase tracking-widest mb-1">Concluídos</p>
                         <p className="text-4xl font-black text-green-800">{escalaCount}</p>
                     </div>
                     <div className="bg-[#FEF2F2] p-5 rounded-2xl border-l-[6px] border-red-500 shadow-xl shadow-red-100/50 transform hover:-translate-y-1 transition-all cursor-pointer" onClick={() => setShowCancelledModal(true)}>
@@ -782,7 +782,7 @@ export default function DashboardPage() {
                         onClick={() => setActiveTab('schedule')}
                         className={`pb-3 px-6 text-sm font-bold transition-all ${activeTab === 'schedule' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                     >
-                        Escala de Limpeza
+                        Escala de Serviços
                     </button>
                     <button
                         onClick={() => setActiveTab('yard')}
@@ -833,10 +833,10 @@ export default function DashboardPage() {
                     <div className="space-y-6">
                         {canEdit && (
                             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                                <h3 className="text-lg font-bold text-gray-800 mb-4">Cadastrar Veículo no Pátio</h3>
+                                <h3 className="text-lg font-bold text-gray-800 mb-4">Adicionar Unidade em Espera</h3>
                                 <form onSubmit={handleAddYardVehicle} className="flex flex-col md:flex-row gap-4 items-end">
                                     <div className="space-y-1.5 flex-1">
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Número do Carro</label>
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Número do Prefixo</label>
                                         <input
                                             type="text"
                                             value={newVehicleNumber}
@@ -867,8 +867,8 @@ export default function DashboardPage() {
                         )}
                         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                             <div className="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-                                <h3 className="font-black text-gray-800 uppercase tracking-widest text-xs">Veículos no Pátio</h3>
-                                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black">{yardItems.length} VEÍCULOS</span>
+                                <h3 className="font-black text-gray-800 uppercase tracking-widest text-xs">Unidades em Espera</h3>
+                                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black">{yardItems.length} UNIDADES</span>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left">
