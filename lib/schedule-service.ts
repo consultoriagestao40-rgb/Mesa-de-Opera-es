@@ -111,7 +111,7 @@ export async function createScheduleVersion(
 
             if (isAlreadyClean && yardStock) {
                 // Try to find cleaner name if available
-                let cleanerName = 'Faxineiro não identificado';
+                let cleanerName = 'Colaborador não identificado';
                 if (yardStock.last_cleaner_id) {
                     const cleanerUser = await tx.user.findUnique({
                         where: { id: yardStock.last_cleaner_id },

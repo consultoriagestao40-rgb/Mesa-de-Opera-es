@@ -59,7 +59,7 @@ export async function GET() {
                 ...item,
                 // Status "virtual" override: if there is an active event, it's EM_ANDAMENTO for UI purposes
                 status: activeEvent ? 'EM_ANDAMENTO' : item.status,
-                last_cleaner_name: cleaner?.name || (item.last_cleaner_id ? 'Faxineiro não identificado' : null),
+                last_cleaner_name: cleaner?.name || (item.last_cleaner_id ? 'Colaborador não identificado' : null),
                 active_event_id: activeEvent?.id
             };
         }));

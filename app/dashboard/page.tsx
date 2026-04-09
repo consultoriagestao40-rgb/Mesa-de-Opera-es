@@ -876,7 +876,7 @@ export default function DashboardPage() {
                                         <tr className="border-b border-gray-100">
                                             <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Carro</th>
                                             <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
-                                            <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center hidden lg:table-cell">Faxineiro</th>
+                                            <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center hidden lg:table-cell">Colaborador</th>
                                             <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center hidden xl:table-cell">Última Limpeza</th>
                                             <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest hidden lg:table-cell">Ingresso no Pátio</th>
                                             <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Ações</th>

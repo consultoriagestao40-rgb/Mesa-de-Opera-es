@@ -134,7 +134,7 @@ export default function WebEventList({ events, autoOpenEventId, userRole }: { ev
                             <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-wider">Prefixo</th>
                             <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-wider hidden xl:table-cell">Saída</th>
                             <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-wider hidden lg:table-cell">Meta (H-1)</th>
-                            <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-wider">Responsável</th>
+                            <th className="py-4 px-4 text-left text-xs font-black uppercase tracking-wider">Colaborador</th>
                             <th className="py-4 px-4 text-center text-xs font-black uppercase tracking-wider">SLA</th>
                             <th className="py-4 px-4 text-center text-xs font-black uppercase tracking-wider hidden md:table-cell">Pátio</th>
                             <th className="py-4 px-4 text-center text-xs font-black uppercase tracking-wider">Status</th>

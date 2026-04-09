@@ -167,7 +167,7 @@ export async function sendStartAlert(eventId: string) {
         }).format(new Date(event.liberar_ate_at));
         
         const isYard = event.event_business_key?.startsWith('YARD-');
-        const cargoLabel = isYard ? 'Faxineiro' : 'Colaborador';
+        const cargoLabel = isYard ? 'Colaborador' : 'Colaborador';
         const responsavel = event.cleaner?.name || event.started_by?.name || 'Sistema';
 
         const message = `⏳ *LIMPEZA INICIADA*\n\n` +
@@ -213,7 +213,7 @@ export async function sendCompletionAlert(eventId: string) {
         }).format(new Date());
         
         const isYard = event.event_business_key?.startsWith('YARD-');
-        const cargoLabel = isYard ? 'Faxineiro' : 'Colaborador';
+        const cargoLabel = isYard ? 'Colaborador' : 'Colaborador';
         const responsavel = event.cleaner?.name || event.completed_by?.name || 'Sistema';
 
         const message = `✅ *LIMPEZA CONCLUÍDA*\n\n` +
