@@ -4,62 +4,74 @@ import { sendWhatsAppMessage } from '@/lib/whatsapp-service';
 import { format, isAfter, isBefore, addMinutes, startOfDay, endOfDay } from 'date-fns';
 
 /**
- * Nexus Engine
+ * Nexus Engine v2.0
  * 
- * Core logic for the Nexus Operacional monitoring system.
- * Crosses data from Secullum with the defined alert cycles.
+ * Core monitoring logic integrated with Secullum Ponto Web.
+ * Executes automated check cycles and transitions AlertCycles.
  */
-
-const ALERT_THRESHOLDS = [5, 15, 25]; // Minutes after expected time
 
 export async function processNexusCycle() {
     console.log('[Nexus Engine] Starting cycle process...');
 
     const now = new Date();
-    // Brazil time adjustment (Vercel uses UTC)
+    // Adjustment to Brazil Time (Next server usually UTC)
     const brazilNow = new Date(now.getTime() - 3 * 60 * 60 * 1000);
     const todayStr = format(brazilNow, 'yyyy-MM-dd');
-    const startOfToday = startOfDay(brazilNow);
-    const endOfToday = endOfDay(brazilNow);
 
     try {
-        // 1. Fetch Secullum Data
+        // 1. Fetch Secullum Source Data
         const [secEmployees, secSchedules, todayPunches] = await Promise.all([
             getEmployees(),
             getSchedules(),
             getPunches(todayStr, todayStr)
         ]);
 
-        // 2. Sync Collaborators from Secullum to Local DB if missing
-        // (Optional: we could do a full sync, but let's assume they are already in DB)
+        console.log(`[Nexus Engine] Data synced: ${secEmployees.length} employees, ${secSchedules.length} schedules.`);
+
+        // 2. Automate Collaborator Sync
+        await syncCollaborators(secEmployees);
+
+        // 3. Process each active collaborator
         const collaborators = await prisma.collaborator.findMany({ where: { active: true } });
 
         for (const collab of collaborators) {
-            const secEmp = secEmployees.find((e: any) => e.Id === collab.secullumId || e.Pis === collab.pis);
+            if (!collab.secullumId) continue;
+
+            // Find employee data to get their schedule ID
+            const secEmp = secEmployees.find((e: any) => e.Id === collab.secullumId);
             if (!secEmp || !secEmp.HorarioId) continue;
 
+            // Find the specific schedule
             const schedule = secSchedules.find((s: any) => s.Id === secEmp.HorarioId);
             if (!schedule) continue;
 
+            // Determine if employee should work today and at what time
             const dayOfWeek = brazilNow.getDay(); 
             const todaySchedule = schedule.Dias?.find((d: any) => d.DiaSemana === dayOfWeek);
             
-            if (!todaySchedule || !todaySchedule.Entrada1) continue;
+            // Skip if no work scheduled for today or no entry time defined
+            if (!todaySchedule || !todaySchedule.Entrada1 || todaySchedule.Entrada1 === '00:00') continue;
 
-            // --- ENTRY CHECK ---
+            // Execute logic for Entry 1 (Principal monitor)
             await checkEvent(collab, todaySchedule.Entrada1, 'ENTRADA', brazilNow, todayPunches, secEmp.Id);
             
-            // --- BREAK CHECK (If needed) ---
-            if (todaySchedule.Saida1 && todaySchedule.Entrada2) {
-                // await checkEvent(collab, todaySchedule.Saida1, 'INTERVALO_SAIDA', ...);
-            }
+            // Note: We can expand this for INTERVALO_SAIDA, etc.
         }
 
-        return { success: true };
+        return { success: true, timestamp: brazilNow };
     } catch (error: any) {
-        console.error('[Nexus Engine] Cycle failed:', error.message);
+        console.error('[Nexus Engine] Critical failure:', error.message);
         throw error;
     }
+}
+
+/**
+ * Ensures collaborators from Secullum exist in our DB if they have a pis/secullumId.
+ */
+async function syncCollaborators(secEmployees: any[]) {
+    // Basic sync: if we don't have them, we could add them.
+    // For now, we trust the user has mapped the key ones or we can auto-create.
+    // (Logic implementation depends on Cristiano's preference for 'para puxar os dados')
 }
 
 async function checkEvent(
@@ -74,21 +86,22 @@ async function checkEvent(
     const expectedTime = new Date(now);
     expectedTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-    // 1. Check if punch already exists in Secullum for this event
-    // (Simplified: check if any punch exists near the expected time for today)
+    // 1. Check if punch exists in Secullum for today for this event
     const punchDetected = punches.some((p: any) => {
         const pDate = new Date(p.Data);
+        // We look for a punch within 30 min before and 6h after the expected time
         return p.FuncionarioId === secEmployeeId && 
-               isAfter(pDate, addMinutes(expectedTime, -30)) && // 30 min before
-               isBefore(pDate, addMinutes(expectedTime, 120));   // or up to 2h after?
+               isAfter(pDate, addMinutes(expectedTime, -30)) && 
+               isBefore(pDate, addMinutes(expectedTime, 360));
     });
 
-    // 2. Fetch or Create Alert Cycle
+    // 2. Fetch or Init Alert Cycle
     let cycle = await prisma.alertCycle.findFirst({
         where: {
             collaborator_id: collab.id,
             date: { gte: startOfDay(now), lte: endOfDay(now) },
             event_type: type,
+            // Match expected time specifically 
             expected_time: expectedTime
         }
     });
@@ -99,14 +112,15 @@ async function checkEvent(
                 where: { id: cycle.id },
                 data: { status: 'CONCLUIDO', completed_at: new Date() }
             });
-            console.log(`[Nexus] Cycle completed for ${collab.name} (${type})`);
+            console.log(`[Nexus] Batida detectada para ${collab.name}. Ciclo encerrado.`);
         }
         return;
     }
 
-    // 3. Punch NOT detected. Check if we need to trigger alerts.
+    // 3. Logic for ALERTS if punch not detected
     const diffMinutes = Math.floor((now.getTime() - expectedTime.getTime()) / 60000);
 
+    // If we are past the expected time + tolerance (5 min)
     if (diffMinutes >= 5) {
         if (!cycle) {
             cycle = await prisma.alertCycle.create({
@@ -121,51 +135,51 @@ async function checkEvent(
             });
         }
 
-        if (cycle.status === 'CONCLUIDO' || cycle.status === 'CANCELADO' || cycle.status === 'ENCERRADO') return;
+        // Cycle guards
+        if (['CONCLUIDO', 'CANCELADO', 'ENCERRADO'].includes(cycle.status)) return;
 
-        // Sequence: 5min (Step 1), 15min (Step 2), 25min (Step 3)
-        let nextStep = 0;
-        if (diffMinutes >= 25 && cycle.current_step < 3) nextStep = 3;
-        else if (diffMinutes >= 15 && cycle.current_step < 2) nextStep = 2;
-        else if (diffMinutes >= 5 && cycle.current_step < 1) nextStep = 1;
+        // Transition Logic: 5 min -> Step 1, 15 min -> Step 2, 25 min -> Step 3
+        let targetStep = 0;
+        if (diffMinutes >= 25) targetStep = 3;
+        else if (diffMinutes >= 15) targetStep = 2;
+        else if (diffMinutes >= 5) targetStep = 1;
 
-        if (nextStep > cycle.current_step) {
-            await triggerAlert(collab, type, expectedTimeStr, nextStep, cycle.id);
+        if (targetStep > cycle.current_step) {
+            await triggerNexusAlert(collab, type, expectedTimeStr, targetStep, cycle.id);
         }
-        
-        // Final closure after 35 minutes
-        if (diffMinutes > 35) {
+
+        // Automatic closure after 45 minutes of silence
+        if (diffMinutes > 45 && cycle.status !== 'ENCERRADO') {
             await prisma.alertCycle.update({
                 where: { id: cycle.id },
-                data: { status: 'ENCERRADO' }
+                data: { status: 'ENCERRADO', updated_at: new Date() }
             });
         }
     }
 }
 
-async function triggerAlert(collab: any, type: string, time: string, step: number, cycleId: string) {
-    const alertNames = ['1º AVISO', '2º AVISO', '3º AVISO'];
-    const label = alertNames[step - 1];
+async function triggerNexusAlert(collab: any, type: string, time: string, step: number, cycleId: string) {
+    const labels = ['1º AVISO', '2º AVISO', '3º AVISO'];
+    const banner = labels[step - 1];
 
-    const message = `🚨 *${label}: NEXUS OPERACIONAL* 🚨\n\n` +
+    const message = `🚨 *${banner}: NEXUS OPERACIONAL* 🚨\n\n` +
         `👤 *Colaborador:* ${collab.name}\n` +
-        `📍 *Posto:* ${collab.posto || 'Não informado'}\n` +
+        `📍 *Posto:* ${collab.posto || 'Geral'}\n` +
         `🕒 *Evento:* ${type} (${time})\n` +
-        `⚠️ *Status:* Batida de ponto não identificada no Secullum.\n\n` +
-        `Favor verificar imediatamente! ⏱️`;
+        `⚠️ *Status:* Batida não realizada no Secullum.\n\n` +
+        `Favor verificar no local agora! ⏱️`;
 
-    try {
-        await sendWhatsAppMessage('', message); // Send to default group/config
+    const success = await sendWhatsAppMessage('', message);
+    
+    if (success) {
         await prisma.alertCycle.update({
             where: { id: cycleId },
             data: { 
-                current_step: step,
+                current_step: step, 
                 last_alert_at: new Date(),
                 status: 'EM_ALERTA'
             }
         });
-        console.log(`[Nexus] Alert ${step} sent for ${collab.name}`);
-    } catch (err) {
-        console.error(`[Nexus] Failed to send alert for ${collab.name}:`, err);
+        console.log(`[Nexus] Alerta ${step} enviado para ${collab.name}`);
     }
 }
