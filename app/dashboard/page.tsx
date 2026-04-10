@@ -2,17 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { 
     Loader2, 
     RefreshCw, 
     AlertTriangle, 
     CheckCircle, 
-    Clock, 
     Users, 
     ShieldAlert, 
     Settings,
-    BellRing
+    BellRing,
+    Pulse
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -51,148 +50,170 @@ export default function NexusDashboard() {
 
     useEffect(() => {
         fetchData();
-        const interval = setInterval(fetchData, 30000); // Refresh every 30s
+        const interval = setInterval(fetchData, 30000); // 30s
         return () => clearInterval(interval);
     }, []);
 
     const getStatusStyle = (step: number) => {
-        if (step === 3) return 'bg-red-500 text-white animate-pulse';
-        if (step === 2) return 'bg-orange-500 text-white';
-        if (step === 1) return 'bg-yellow-500 text-white';
-        return 'bg-gray-100 text-gray-500';
+        if (step === 3) return 'bg-red-500 text-white shadow-lg shadow-red-200 animate-nexus-pulse';
+        if (step === 2) return 'bg-orange-500 text-white shadow-lg shadow-orange-200';
+        if (step === 1) return 'bg-yellow-500 text-white shadow-lg shadow-yellow-100';
+        return 'bg-slate-100 text-slate-500 font-black uppercase text-[10px]';
     };
 
     const getStepLabel = (step: number) => {
-        if (step === 0) return 'Monitorando';
+        if (step === 0) return 'Monitorando...';
         return `${step}º AVISO`;
     };
 
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-[80vh]">
-                <Loader2 className="animate-spin text-blue-600 mb-4" size={48} />
-                <p className="text-gray-500 font-bold animate-pulse">Iniciando Nexus Operacional...</p>
+                <div className="w-24 h-24 bg-blue-600 rounded-[2rem] flex items-center justify-center mb-6 shadow-2xl shadow-blue-200 animate-nexus-pulse">
+                    <ShieldAlert className="text-white" size={48} />
+                </div>
+                <p className="text-slate-400 font-black uppercase tracking-[0.3em] animate-pulse">Iniciando Nexus Engine</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-700">
-            {/* Header Area */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-1000">
+            {/* Command Header */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
                 <div>
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-                        <ShieldAlert className="text-blue-600" size={32} />
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse border-4 border-emerald-400/20" />
+                        <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Live: Operação em Tempo Real</span>
+                    </div>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tighter flex items-center gap-4">
                         Monitor de Exceções
                     </h1>
-                    <p className="text-gray-500 font-medium">Mesa de Operação Automática • Nexus v1.0</p>
+                    <p className="text-slate-500 font-bold mt-1">Sincronizado via <span className="text-blue-600">Secullum Ponto Web</span></p>
                 </div>
-                <div className="flex items-center gap-3">
+                
+                <div className="flex items-center gap-4">
                     <button 
                         onClick={fetchData}
-                        className="p-3 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-all text-gray-600 active:scale-95"
+                        className="p-4 nexus-card flex items-center justify-center hover:bg-slate-50 active:scale-95 transition-all text-slate-400"
                     >
                         <RefreshCw size={20} />
                     </button>
-                    <div className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-200 flex items-center gap-2">
+                    <div className="nexus-button-primary flex items-center gap-3">
                         <BellRing size={20} className="animate-bounce" />
-                        Live Monitoring
+                        <span>Mesa de Operações</span>
                     </div>
                 </div>
             </div>
 
-            {/* KPI Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-[2rem] shadow-xl shadow-gray-100/50 border border-gray-50 relative overflow-hidden group">
-                    <div className="relative z-10 flex justify-between items-center">
-                        <div>
-                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Equipe Nexus</p>
-                            <p className="text-4xl font-black text-gray-900">{stats.total}</p>
+            {/* Matrix KPIs */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="nexus-card p-8 group relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-bl-[4rem] transition-all group-hover:bg-blue-600/5" />
+                    <div className="relative z-10 flex flex-col gap-4">
+                        <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-blue-600 group-hover:bg-blue-50 transition-all">
+                            <Users size={24} />
                         </div>
-                        <div className="p-4 bg-gray-50 rounded-2xl text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
-                            <Users size={28} />
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total de Colaboradores</p>
+                            <p className="text-5xl font-black text-slate-900 tracking-tight">{stats.total}</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-[2rem] shadow-xl shadow-gray-100/50 border border-emerald-50 relative overflow-hidden group">
-                    <div className="relative z-10 flex justify-between items-center">
-                        <div>
-                            <p className="text-xs font-black text-emerald-500 uppercase tracking-widest mb-1">Presença Confirmada</p>
-                            <p className="text-4xl font-black text-emerald-900">{stats.completed}</p>
+                <div className="nexus-card p-8 group relative border-emerald-100 overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50/50 rounded-bl-[4rem]" />
+                    <div className="relative z-10 flex flex-col gap-4">
+                        <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                            <CheckCircle size={24} />
                         </div>
-                        <div className="p-4 bg-emerald-50 rounded-2xl text-emerald-500">
-                            <CheckCircle size={28} />
+                        <div>
+                            <p className="text-[10px] font-black text-emerald-600/60 uppercase tracking-widest mb-1">Presença Confirmada</p>
+                            <p className="text-5xl font-black text-slate-900 tracking-tight">{stats.completed}</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-[2rem] shadow-xl shadow-gray-100/50 border border-red-50 relative overflow-hidden group">
-                    <div className="relative z-10 flex justify-between items-center">
-                        <div>
-                            <p className="text-xs font-black text-red-500 uppercase tracking-widest mb-1">Exceções Ativas</p>
-                            <p className="text-4xl font-black text-red-900">{stats.alerts}</p>
+                <div className="nexus-card p-8 group border-red-100 overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-red-50/50 rounded-bl-[4rem]" />
+                    <div className="relative z-10 flex flex-col gap-4">
+                        <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 animate-nexus-pulse">
+                            <AlertTriangle size={24} />
                         </div>
-                        <div className="p-4 bg-red-50 rounded-2xl text-red-500 animate-pulse">
-                            <AlertTriangle size={28} />
+                        <div>
+                            <p className="text-[10px] font-black text-red-600/60 uppercase tracking-widest mb-1">Exceções Ativas</p>
+                            <p className="text-5xl font-black text-slate-900 tracking-tight">{stats.alerts}</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Exceptions Grid */}
-            <div className="bg-white rounded-[2rem] shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
-                    <h3 className="font-black text-gray-800 uppercase tracking-widest text-sm">Fila de Alertas em Tempo Real</h3>
-                    <span className="text-xs text-blue-600 font-bold bg-blue-50 px-3 py-1 rounded-full uppercase">Ciclo Ativo</span>
+            {/* Operational Table */}
+            <div className="nexus-card overflow-hidden">
+                <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+                    <div className="flex items-center gap-3">
+                        <Pulse size={20} className="text-blue-600 animate-pulse" />
+                        <h3 className="font-black text-slate-800 uppercase tracking-widest text-xs">Fila de Exceções de Ponto</h3>
+                    </div>
+                    <span className="text-[10px] text-blue-600 font-black bg-blue-50 px-4 py-2 rounded-full uppercase tracking-widest">Nexus Engine v1.0</span>
                 </div>
 
                 <div className="overflow-x-auto">
                     {cycles.length === 0 ? (
-                        <div className="p-20 text-center">
-                            <CheckCircle size={64} className="mx-auto text-emerald-100 mb-4" />
-                            <p className="text-gray-400 font-bold text-lg">Nenhuma exceção detectada no momento.</p>
-                            <p className="text-gray-300 text-sm">Todas as metas de ponto do Secullum estão em dia.</p>
+                        <div className="py-24 text-center">
+                            <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <CheckCircle size={48} className="text-emerald-300" />
+                            </div>
+                            <p className="text-slate-400 font-black text-xl uppercase tracking-tighter">Operação 100% Limpa</p>
+                            <p className="text-slate-300 text-sm font-bold mt-1">Nenhum atraso ou falta detectada no Secullum.</p>
                         </div>
                     ) : (
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="text-gray-400 text-[10px] font-black uppercase tracking-widest border-b border-gray-100">
-                                    <th className="px-8 py-5">Colaborador</th>
-                                    <th className="px-8 py-5">Posto</th>
-                                    <th className="px-8 py-5">Evento</th>
-                                    <th className="px-8 py-5">Previsto</th>
-                                    <th className="px-8 py-5 text-center">Status do Ciclo</th>
+                                <tr className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-slate-50 bg-slate-50/10">
+                                    <th className="px-10 py-6">Colaborador</th>
+                                    <th className="px-10 py-6">Posto de Trabalho</th>
+                                    <th className="px-10 py-6">Evento Esperado</th>
+                                    <th className="px-10 py-6">Previsto</th>
+                                    <th className="px-10 py-6 text-center">Ciclo de Alerta</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody className="divide-y divide-slate-50">
                                 {cycles.map((item: any) => (
-                                    <tr key={item.id} className="hover:bg-blue-50/30 transition-all cursor-default group">
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-400 font-black group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                    <tr key={item.id} className="hover:bg-slate-50/80 transition-all cursor-default group">
+                                        <td className="px-10 py-7">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500 font-black group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
                                                     {item.collaborator.name.charAt(0)}
                                                 </div>
-                                                <span className="font-bold text-gray-800">{item.collaborator.name}</span>
+                                                <div>
+                                                    <p className="font-black text-slate-800 tracking-tight">{item.collaborator.name}</p>
+                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">ID: {item.collaborator.secullumId || '---'}</p>
+                                                </div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <span className="text-xs font-black text-gray-500 uppercase bg-gray-100 px-3 py-1.5 rounded-lg">
+                                        <td className="px-10 py-7">
+                                            <span className="text-[10px] font-black text-slate-500 uppercase bg-slate-100 px-4 py-2 rounded-xl group-hover:bg-white group-hover:shadow-sm transition-all">
                                                 {item.collaborator.posto || 'Geral'}
                                             </span>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <span className="text-xs font-bold text-gray-700 flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                                {item.event_type}
-                                            </span>
+                                        <td className="px-10 py-7">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-2 h-2 rounded-full bg-blue-600" />
+                                                <span className="text-xs font-black text-slate-700 uppercase tracking-tighter">
+                                                    {item.event_type}
+                                                </span>
+                                            </div>
                                         </td>
-                                        <td className="px-8 py-6 text-gray-500 font-bold text-sm">
-                                            {format(new Date(item.expected_time), 'HH:mm')}
+                                        <td className="px-10 py-7">
+                                            <div className="flex items-center gap-2 text-slate-500 font-black text-sm">
+                                                <Clock size={14} className="opacity-50" />
+                                                {format(new Date(item.expected_time), 'HH:mm')}
+                                            </div>
                                         </td>
-                                        <td className="px-8 py-6">
+                                        <td className="px-10 py-7">
                                             <div className="flex justify-center">
-                                                <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm ${getStatusStyle(item.current_step)}`}>
+                                                <span className={`px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm transition-all ${getStatusStyle(item.current_step)}`}>
                                                     {getStepLabel(item.current_step)}
                                                 </span>
                                             </div>
@@ -205,12 +226,12 @@ export default function NexusDashboard() {
                 </div>
             </div>
 
-            {/* Floating Quick Settings for Admin */}
+            {/* Nexus Quick Access for Admin */}
             {user?.role === 'ADMIN' && (
-                <div className="fixed bottom-8 right-8 cursor-pointer group" onClick={() => router.push('/dashboard/nexus/settings')}>
-                    <div className="bg-gray-900 text-white p-4 rounded-3xl shadow-2xl flex items-center gap-3 hover:bg-black transition-all">
-                        <Settings className="group-hover:rotate-90 transition-transform duration-500" />
-                        <span className="font-black text-xs uppercase tracking-widest hidden group-hover:block pr-2">Nexus Config</span>
+                <div className="fixed bottom-12 right-12 cursor-pointer group z-50" onClick={() => router.push('/dashboard/nexus/settings')}>
+                    <div className="bg-slate-900 border border-white/10 text-white p-5 rounded-[2rem] shadow-2xl flex items-center gap-4 hover:bg-black transition-all duration-500 active:scale-95">
+                        <Settings className="group-hover:rotate-180 transition-transform duration-700 text-blue-400" />
+                        <span className="font-black text-[10px] uppercase tracking-[0.2em] hidden group-hover:block animate-in fade-in slide-in-from-right-2 pr-4">Config Nexus</span>
                     </div>
                 </div>
             )}

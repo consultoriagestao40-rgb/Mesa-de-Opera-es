@@ -14,19 +14,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mesa de Operações - Sistema de Gestão",
-  description: "Sistema de gerenciamento logístico e operacional",
+  title: "Nexus Operacional - Mesa de Operações",
+  description: "Monitoramento inteligente de jornada e exceções via Secullum Ponto Web",
   manifest: "/manifest.json",
-  themeColor: "#1e40af",
+  themeColor: "#0f172a",
   viewport: {
     width: "device-width",
     initialScale: 1,
     maximumScale: 1,
+    userScalable: false,
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
-    title: "Mesa Operações",
+    statusBarStyle: "black-translucent",
+    title: "Nexus Operacional",
   },
   other: {
     'mobile-web-app-capable': 'yes',
