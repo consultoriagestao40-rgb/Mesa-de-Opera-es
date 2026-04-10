@@ -134,7 +134,7 @@ async function checkEvent(
         }
         
         // Final closure after 35 minutes
-        if (diffMinutes > 35 && cycle.status !== 'ENCERRADO') {
+        if (diffMinutes > 35) {
             await prisma.alertCycle.update({
                 where: { id: cycle.id },
                 data: { status: 'ENCERRADO' }
@@ -155,7 +155,7 @@ async function triggerAlert(collab: any, type: string, time: string, step: numbe
         `Favor verificar imediatamente! ⏱️`;
 
     try {
-        await sendWhatsAppMessage(message);
+        await sendWhatsAppMessage('', message); // Send to default group/config
         await prisma.alertCycle.update({
             where: { id: cycleId },
             data: { 
