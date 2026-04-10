@@ -11,7 +11,8 @@ import {
     ShieldAlert, 
     Settings,
     BellRing,
-    Activity
+    Activity,
+    Clock
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
