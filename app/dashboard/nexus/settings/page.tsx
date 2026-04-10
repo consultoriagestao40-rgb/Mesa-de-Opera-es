@@ -18,6 +18,7 @@ export default function NexusSettings() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
+    const [testLoading, setTestLoading] = useState(false);
 
     const fetchConfigs = async () => {
         try {
@@ -60,6 +61,23 @@ export default function NexusSettings() {
         setConfigs(prev => prev.map(c => c.key === key ? { ...c, value } : c));
     };
 
+    const handleTestConnection = async () => {
+        setTestLoading(true);
+        try {
+            const res = await fetch('/api/nexus/test-secullum', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                alert('✅ CONEXÃO COM SUCESSO! O Nexus conseguiu logar na Secullum.');
+            } else {
+                alert('❌ FALHA NA CONEXÃO: ' + data.error);
+            }
+        } catch (e: any) {
+            alert('❌ ERRO TÉCNICO: ' + e.message);
+        } finally {
+            setTestLoading(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center p-20">
@@ -72,7 +90,7 @@ export default function NexusSettings() {
     const configDefinitions = [
         { key: 'SECULLUM_USERNAME', label: 'Secullum Username', icon: User, type: 'text', description: 'Usuário de acesso ao Ponto Web' },
         { key: 'SECULLUM_PASSWORD', label: 'Secullum Password', icon: Key, type: 'password', description: 'Senha de acesso ao Ponto Web' },
-        { key: 'SECULLUM_DATABASE_ID', label: 'Secullum Database ID', icon: Database, type: 'text', description: 'ID do Banco de Dados no Secullum' },
+        { key: 'SECULLUM_DATABASE_ID', label: 'Secullum Database ID', icon: Database, type: 'text', description: 'ID do Banco de Dados no Secullum (ex: 4a2ff5...)' },
         { key: 'ZAPI_INSTANCE_ID', label: 'Z-API Instance ID', icon: Globe, type: 'text', description: 'ID da Instância Z-API' },
         { key: 'ZAPI_TOKEN', label: 'Z-API Token', icon: ShieldCheck, type: 'password', description: 'Token de Segurança da Z-API' },
         { key: 'WHATSAPP_GROUP_ID', label: 'WhatsApp Target ID', icon: Globe, type: 'text', description: 'Número ou ID do Grupo para alertas' },
@@ -82,7 +100,7 @@ export default function NexusSettings() {
         <div className="max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
                 <h1 className="text-3xl font-black text-gray-900 tracking-tight">Configurações Nexus</h1>
-                <p className="text-gray-500 font-medium italic">Integração de Alta Performance Secullum ↔ Z-API</p>
+                <p className="text-gray-500 font-medium italic">Gestão de Credenciais e Diagnóstico Secullum</p>
             </div>
 
             {message && (
@@ -137,11 +155,22 @@ export default function NexusSettings() {
                 })}
             </div>
 
-            <div className="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 flex items-start gap-4">
-                <Info className="text-blue-600 shrink-0" size={24} />
-                <div className="text-sm text-blue-700 font-medium">
-                    <p className="font-black uppercase tracking-widest text-[10px] mb-2">Segurança Nexus</p>
-                    As credenciais são armazenadas de forma segura no banco de dados. Utilize senhas fortes e tokens rotativos quando possível.
+            <div className="flex flex-col gap-4">
+                <button
+                    onClick={handleTestConnection}
+                    disabled={testLoading}
+                    className="w-full p-6 bg-blue-600 text-white rounded-[2rem] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+                >
+                    {testLoading ? <Loader2 className="animate-spin" /> : <ShieldCheck />}
+                    Testar Conexão Secullum
+                </button>
+
+                <div className="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 flex items-start gap-4">
+                    <Info className="text-blue-600 shrink-0" size={24} />
+                    <div className="text-sm text-blue-700 font-medium">
+                        <p className="font-black uppercase tracking-widest text-[10px] mb-2">Segurança Nexus</p>
+                        As credenciais são armazenadas de forma segura. Utilize o botão azul para validar se a sua conta Secullum permite o acesso do Nexus.
+                    </div>
                 </div>
             </div>
         </div>
