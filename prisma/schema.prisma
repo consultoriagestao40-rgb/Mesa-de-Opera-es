@@ -78,7 +78,9 @@ model AuditLog {
 enum Role {
   OPERATOR
   SUPERVISOR
+  MANAGER
   ADMIN
+  CLIENT
 }
 
 enum EventType {
