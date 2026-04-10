@@ -69,9 +69,31 @@ export async function processNexusCycle() {
  * Ensures collaborators from Secullum exist in our DB if they have a pis/secullumId.
  */
 async function syncCollaborators(secEmployees: any[]) {
-    // Basic sync: if we don't have them, we could add them.
-    // For now, we trust the user has mapped the key ones or we can auto-create.
-    // (Logic implementation depends on Cristiano's preference for 'para puxar os dados')
+    console.log(`[Nexus Engine] Syncing ${secEmployees.length} employees...`);
+    
+    for (const emp of secEmployees) {
+        // Use Secullum Id as unique identifier
+        const secId = emp.Id?.toString();
+        if (!secId) continue;
+
+        await prisma.collaborator.upsert({
+            where: { secullumId: secId },
+            update: {
+                name: emp.Nome,
+                active: emp.Ativo !== false,
+                pis: emp.Pis || null
+            },
+            create: {
+                name: emp.Nome,
+                secullumId: secId,
+                pis: emp.Pis || null,
+                active: true,
+                posto: 'Importado Secullum'
+            }
+        });
+    }
+    
+    console.log('[Nexus Engine] Sync complete.');
 }
 
 async function checkEvent(
