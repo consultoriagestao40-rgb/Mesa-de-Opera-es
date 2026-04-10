@@ -11,7 +11,7 @@ import {
     ShieldAlert, 
     Settings,
     BellRing,
-    Pulse
+    Activity
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -152,7 +152,7 @@ export default function NexusDashboard() {
             <div className="nexus-card overflow-hidden">
                 <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
                     <div className="flex items-center gap-3">
-                        <Pulse size={20} className="text-blue-600 animate-pulse" />
+                        <Activity size={20} className="text-blue-600 animate-pulse" />
                         <h3 className="font-black text-slate-800 uppercase tracking-widest text-xs">Fila de Exceções de Ponto</h3>
                     </div>
                     <span className="text-[10px] text-blue-600 font-black bg-blue-50 px-4 py-2 rounded-full uppercase tracking-widest">Nexus Engine v1.0</span>
