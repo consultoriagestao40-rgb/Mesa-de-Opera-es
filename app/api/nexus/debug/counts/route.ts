@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+// Rota temporária sem proteção para diagnóstico de banco
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         const collaboratorsTotal = await prisma.collaborator.count();
