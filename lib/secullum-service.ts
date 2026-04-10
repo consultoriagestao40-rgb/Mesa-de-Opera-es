@@ -8,7 +8,7 @@ import { getNexusConfigs } from './config-service';
  */
 
 const SECULLUM_AUTH_URL = 'https://autenticador.secullum.com.br/Token';
-const SECULLUM_API_URL = 'https://pontowebintegracaoexterna.secullum.com.br/IntegracaoExterna';
+const SECULLUM_API_URL = 'https://pontoweb.secullum.com.br/api/IntegracaoExterna';
 
 // Token Cache
 let cachedToken: string | null = null;
@@ -65,11 +65,14 @@ async function secullumRequest(endpoint: string, params: any = {}) {
             params,
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'secullumidbancoselecionado': databaseId
+                'DBSecullumID': databaseId
             }
         });
         return response.data;
     } catch (error: any) {
+        if (error.response?.status === 500) {
+            console.error(`[Secullum API] 500 Error at ${endpoint}. Check if DBSecullumID is correct:`, databaseId);
+        }
         console.error(`[Secullum API] Request to ${endpoint} failed:`, error.response?.data || error.message);
         throw error;
     }
