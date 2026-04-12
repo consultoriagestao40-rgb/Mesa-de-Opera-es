@@ -71,24 +71,28 @@ export async function processNexusCycle() {
 export async function syncCollaborators(secEmployees: any[]) {
     console.log(`[Nexus Engine] Syncing ${secEmployees.length} employees...`);
     
-    for (const emp of secEmployees) {
-        // Use Secullum Id as unique identifier
-        const secId = emp.Id?.toString();
+    for (const empRaw of secEmployees) {
+        // Normaliza campos da Secullum (pode vir Id ou id, Nome ou nome)
+        const emp = empRaw as any;
+        const secId = (emp.Id || emp.id || emp.IdPessoa || '').toString();
+        const nomeFinal = emp.Nome || emp.nome || 'Funcionario sem Nome';
+        
         if (!secId) continue;
 
         await prisma.collaborator.upsert({
             where: { secullumId: secId },
             update: {
-                name: emp.Nome,
-                active: emp.Ativo !== false,
-                pis: emp.Pis || null
+                name: nomeFinal,
+                active: true,
+                pis: (emp.Pis || emp.pis || '').toString() || null,
+                posto: emp.empresaNome || emp.EmpresaNome || 'Importado Secullum'
             },
             create: {
-                name: emp.Nome,
+                name: nomeFinal,
                 secullumId: secId,
-                pis: emp.Pis || null,
+                pis: (emp.Pis || emp.pis || '').toString() || null,
                 active: true,
-                posto: 'Importado Secullum'
+                posto: emp.empresaNome || emp.EmpresaNome || 'Importado Secullum'
             }
         });
     }
