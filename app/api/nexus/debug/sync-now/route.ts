@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import axios from 'axios';
-import { syncCollaborators } from '@/lib/nexus-engine';
+import { processNexusCycle } from '@/lib/nexus-engine';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,18 +26,17 @@ export async function GET() {
             });
         }
 
-        // 2. Disparar o Sincronismo usando o motor oficial
-        // Importante: O secullum-service.ts já foi atualizado para usar DBSecullumID e a URL correta.
-        const result = await syncCollaborators();
+        // 2. Disparar o Sincronismo usando o processo completo
+        const result = await processNexusCycle();
 
         // 3. Verificar o resultado no banco
         const count = await prisma.collaborator.count();
 
         return NextResponse.json({
             success: true,
-            message: 'Sincronismo concluído!',
-            collaborators_found: count,
-            engine_result: result
+            message: 'Sincronismo concluído via ProcessNexusCycle!',
+            collaborators_in_db: count,
+            details: result
         });
 
     } catch (error: any) {
