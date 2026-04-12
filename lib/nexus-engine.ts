@@ -68,7 +68,7 @@ export async function processNexusCycle() {
 /**
  * Ensures collaborators from Secullum exist in our DB if they have a pis/secullumId.
  */
-async function syncCollaborators(secEmployees: any[]) {
+export async function syncCollaborators(secEmployees: any[]) {
     console.log(`[Nexus Engine] Syncing ${secEmployees.length} employees...`);
     
     for (const emp of secEmployees) {
