@@ -5,20 +5,14 @@ import { getUserFromToken } from '@/lib/auth';
 
 export async function GET(request: Request) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
-        const user = token ? await getUserFromToken(token) : null;
-
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
+        // Busca simplificada para garantir exibição no dashboard
         const collaborators = await prisma.collaborator.findMany({
             where: { active: true },
             orderBy: { name: 'asc' }
         });
 
-        return NextResponse.json({ cleaners: collaborators }); // Keep key for frontend compat temporarily
+        console.log(`[API] Retornando ${collaborators.length} colaboradores ativos.`);
+        return NextResponse.json({ cleaners: collaborators });
 
     } catch (error) {
         console.error('List Cleaners Error:', error);

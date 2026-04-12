@@ -38,13 +38,21 @@ export default function CollaboratorsPage() {
     const fetchCollaborators = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/cleaners');
+            // Adiciona um timestamp para evitar cache do navegador e burlar bloqueios de extensão
+            const res = await fetch(`/api/cleaners?t=${Date.now()}`);
+            console.log('[Nexus] Status da resposta:', res.status);
+            
             if (res.ok) {
                 const data = await res.json();
-                setCollaborators(data.cleaners);
+                console.log('[Nexus] Dados recebidos:', data.cleaners?.length || 0, 'registros');
+                if (data.cleaners) {
+                    setCollaborators(data.cleaners);
+                }
+            } else {
+                console.error('[Nexus] Erro na resposta da API:', res.statusText);
             }
         } catch (error) {
-            console.error(error);
+            console.error('[Nexus] Erro fatal na busca:', error);
         } finally {
             setLoading(false);
         }
