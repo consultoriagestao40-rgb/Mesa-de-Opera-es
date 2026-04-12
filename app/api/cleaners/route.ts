@@ -5,9 +5,8 @@ import { getUserFromToken } from '@/lib/auth';
 
 export async function GET(request: Request) {
     try {
-        // Busca simplificada para garantir exibição no dashboard
+        // Busca todos para garantir que os 142 importados apareçam
         const collaborators = await prisma.collaborator.findMany({
-            where: { active: true },
             orderBy: { name: 'asc' }
         });
 
