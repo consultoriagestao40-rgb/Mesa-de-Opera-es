@@ -37,9 +37,13 @@ export async function GET() {
         });
 
     } catch (error: any) {
+        const { getNexusConfigs } = require('@/lib/config-service');
+        const configs = await getNexusConfigs();
         return NextResponse.json({ 
             success: false, 
             error: error.message,
+            read_user: configs['SECULLUM_USERNAME'],
+            read_pass: configs['SECULLUM_PASSWORD'],
             details: error.response?.data || 'Sem detalhes adicionais'
         }, { status: 500 });
     }
