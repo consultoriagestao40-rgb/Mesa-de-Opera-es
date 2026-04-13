@@ -58,7 +58,7 @@ export async function processNexusCycle() {
             // Note: We can expand this for INTERVALO_SAIDA, etc.
         }
 
-        return { success: true, timestamp: brazilNow, debugSchema: secEmployees[0] };
+        return { success: true, timestamp: brazilNow };
     } catch (error: any) {
         console.error('[Nexus Engine] Critical failure:', error.message);
         throw error;
@@ -77,13 +77,16 @@ export async function syncCollaborators(secEmployees: any[]) {
         const secId = (emp.Id || emp.id || emp.IdPessoa || '').toString();
         const nomeFinal = emp.Nome || emp.nome || 'Funcionario sem Nome';
         
+        // Define if employee is active (null Demissao and not Invisivel)
+        const isActive = !emp.Demissao && emp.Invisivel !== true;
+        
         if (!secId) continue;
 
         await prisma.collaborator.upsert({
             where: { secullumId: secId },
             update: {
                 name: nomeFinal,
-                active: true,
+                active: isActive,
                 pis: (emp.Pis || emp.pis || '').toString() || null,
                 posto: emp.empresaNome || emp.EmpresaNome || 'Importado Secullum'
             },
@@ -91,7 +94,7 @@ export async function syncCollaborators(secEmployees: any[]) {
                 name: nomeFinal,
                 secullumId: secId,
                 pis: (emp.Pis || emp.pis || '').toString() || null,
-                active: true,
+                active: isActive,
                 posto: emp.empresaNome || emp.EmpresaNome || 'Importado Secullum'
             }
         });

@@ -120,7 +120,7 @@ export default function NexusSidebar() {
                 <div className="mb-6 px-4">
                     <div className="flex items-center gap-3 text-emerald-400">
                         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse border-4 border-emerald-400/20" />
-                        {!collapsed && <span className="text-[10px] font-black uppercase tracking-widest">Build v0.1.7</span>}
+                        {!collapsed && <span className="text-[10px] font-black uppercase tracking-widest">Build v0.1.8</span>}
                     </div>
                 </div>
 
