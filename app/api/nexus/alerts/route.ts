@@ -45,8 +45,8 @@ export async function GET(request: Request) {
             cycles: activeCycles,
             stats: {
                 total: totalCollaborators,
-                completed: completedToday,
-                alerts: alertsActive
+                completed: completedOnDay,
+                alerts: alertsOnDay
             }
         });
     } catch (error: any) {

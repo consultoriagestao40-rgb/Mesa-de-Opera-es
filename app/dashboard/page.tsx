@@ -20,6 +20,12 @@ import {
 import { useRouter } from 'next/navigation';
 import { addDays, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: any[]) {
+    return twMerge(clsx(inputs));
+}
 
 export default function NexusDashboard() {
     const [loading, setLoading] = useState(true);
