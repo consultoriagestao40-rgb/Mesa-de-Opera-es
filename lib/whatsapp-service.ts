@@ -21,7 +21,7 @@ export async function sendWhatsAppMessage(to: string, message: string) {
             return false;
         }
 
-        const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-messages`;
+        const url = `https://api.z-api.io/instances/${instanceId}/token/${token}/send-text`;
         
         await axios.post(url, {
             phone: targetId,

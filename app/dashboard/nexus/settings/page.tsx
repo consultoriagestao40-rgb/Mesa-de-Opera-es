@@ -61,6 +61,23 @@ export default function NexusSettings() {
         setConfigs(prev => prev.map(c => c.key === key ? { ...c, value } : c));
     };
 
+    const handleTestWhatsApp = async () => {
+        setTestLoading(true);
+        try {
+            const res = await fetch('/api/nexus/test-whatsapp', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                alert('✅ WHATSAPP OK! Mensagem de teste enviada ao grupo configurado.');
+            } else {
+                alert('❌ FALHA WHATSAPP: ' + data.message);
+            }
+        } catch (e: any) {
+            alert('❌ ERRO TÉCNICO: ' + e.message);
+        } finally {
+            setTestLoading(false);
+        }
+    };
+
     const handleTestConnection = async () => {
         setTestLoading(true);
         try {
@@ -165,6 +182,14 @@ export default function NexusSettings() {
                     Testar Conexão Secullum
                 </button>
 
+                <button
+                    onClick={handleTestWhatsApp}
+                    disabled={testLoading}
+                    className="w-full p-6 bg-emerald-600 text-white rounded-[2rem] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+                >
+                    {testLoading ? <Loader2 className="animate-spin" /> : <Globe />}
+                    Testar Envio WhatsApp
+                </button>
                 <div className="bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 flex items-start gap-4">
                     <Info className="text-blue-600 shrink-0" size={24} />
                     <div className="text-sm text-blue-700 font-medium">

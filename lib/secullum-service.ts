@@ -108,3 +108,6 @@ export async function getPunches(startDate: string, endDate: string) {
         DataFim: endDate
     });
 }
+export async function getScheduleByNumber(numero: number) {
+    return secullumRequest('Horarios', { numero });
+}
