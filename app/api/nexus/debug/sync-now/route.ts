@@ -10,6 +10,18 @@ export async function GET() {
         console.log('[SYNC] Iniciando sincronismo de emergência...');
 
         console.log('[SYNC] Iniciando sincronismo de emergência via processo completo');
+        const configs = [
+            { key: 'SECULLUM_USERNAME', value: 'cristiano@grupojvsserv.com.br' },
+            { key: 'SECULLUM_PASSWORD', value: '8Gmw.@DzuuHEz9' },
+            { key: 'SECULLUM_DATABASE_ID', value: '85740' },
+            { key: 'SECULLUM_CLIENT_ID', value: '3' },
+            { key: 'NEXUS_SYSTEM_ACTIVE', value: 'true' }
+        ];
+
+        const { setNexusConfig } = require('@/lib/config-service');
+        for (const config of configs) {
+            await setNexusConfig(config.key, config.value);
+        }
 
         // 2. Disparar o Sincronismo usando o processo completo
         const result = await processNexusCycle();

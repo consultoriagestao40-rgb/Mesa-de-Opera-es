@@ -65,7 +65,7 @@ async function secullumRequest(endpoint: string, params: any = {}) {
             params,
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'DBSecullumID': databaseId
+                'secullumidbancoselecionado': databaseId
             }
         });
         return response.data;
