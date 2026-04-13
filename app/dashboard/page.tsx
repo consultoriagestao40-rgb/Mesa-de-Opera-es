@@ -189,7 +189,11 @@ export default function NexusDashboard() {
                                                 </div>
                                                 <div>
                                                     <p className="font-black text-slate-800 tracking-tight">{item.collaborator.name}</p>
-                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">ID: {item.collaborator.secullumId || '---'}</p>
+                                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {item.collaborator.secullumId || '---'}</span>
+                                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">•</span>
+                                                        <span className="text-[10px] text-blue-600 font-black uppercase tracking-widest">{item.collaborator.departamento || 'Sem Depto'}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
