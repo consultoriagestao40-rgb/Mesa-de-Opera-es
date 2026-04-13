@@ -9,19 +9,7 @@ export async function GET() {
     try {
         console.log('[SYNC] Iniciando sincronismo de emergência...');
 
-        // 1. Garantir que as credenciais estão no banco
-        const configs = [
-            { key: 'SECULLUM_USERNAME', value: 'cristiano@grupojvsserv.com.br' },
-            { key: 'SECULLUM_PASSWORD', value: '8Gmw.@DzuuHEz9' },
-            { key: 'SECULLUM_DATABASE_ID', value: '4a2ff5a0-11ab-48fb-8f36-f97ca5af700c' },
-            { key: 'SECULLUM_CLIENT_ID', value: '3' },
-            { key: 'NEXUS_SYSTEM_ACTIVE', value: 'true' }
-        ];
-
-        const { setNexusConfig } = require('@/lib/config-service');
-        for (const config of configs) {
-            await setNexusConfig(config.key, config.value);
-        }
+        console.log('[SYNC] Iniciando sincronismo de emergência via processo completo');
 
         // 2. Disparar o Sincronismo usando o processo completo
         const result = await processNexusCycle();
