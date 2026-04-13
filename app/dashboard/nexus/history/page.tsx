@@ -76,6 +76,7 @@ export default function NexusHistory() {
                         <tr className="text-gray-400 text-[10px] font-black uppercase tracking-widest border-b border-gray-50 bg-gray-50/30">
                             <th className="px-8 py-5">Data/Hora</th>
                             <th className="px-8 py-5">Colaborador</th>
+                            <th className="px-8 py-5">Departamento</th>
                             <th className="px-8 py-5">Evento</th>
                             <th className="px-8 py-5">Status Final</th>
                             <th className="px-8 py-5">Último Aviso</th>
@@ -106,9 +107,11 @@ export default function NexusHistory() {
                                             </div>
                                             <div>
                                                 <span className="font-bold text-gray-800 block">{log.collaborator?.name}</span>
-                                                <span className="text-[10px] text-gray-400 font-black uppercase tracking-wider block mt-0.5">{log.collaborator?.departamento || 'Sem Departamento'}</span>
                                             </div>
                                         </div>
+                                    </td>
+                                    <td className="px-8 py-6">
+                                        <span className="text-[10px] text-blue-600 font-black uppercase tracking-wider">{log.collaborator?.departamento || '---'}</span>
                                     </td>
                                     <td className="px-8 py-6">
                                         <span className="text-xs font-bold text-gray-600">{log.event_type}</span>

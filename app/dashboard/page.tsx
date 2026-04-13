@@ -173,6 +173,7 @@ export default function NexusDashboard() {
                             <thead>
                                 <tr className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-slate-50 bg-slate-50/10">
                                     <th className="px-10 py-6">Colaborador</th>
+                                    <th className="px-10 py-6">Departamento</th>
                                     <th className="px-10 py-6">Posto de Trabalho</th>
                                     <th className="px-10 py-6">Evento Esperado</th>
                                     <th className="px-10 py-6">Previsto</th>
@@ -189,13 +190,14 @@ export default function NexusDashboard() {
                                                 </div>
                                                 <div>
                                                     <p className="font-black text-slate-800 tracking-tight">{item.collaborator.name}</p>
-                                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {item.collaborator.secullumId || '---'}</span>
-                                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">•</span>
-                                                        <span className="text-[10px] text-blue-600 font-black uppercase tracking-widest">{item.collaborator.departamento || 'Sem Depto'}</span>
-                                                    </div>
+                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">ID: {item.collaborator.secullumId || '---'}</p>
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className="px-10 py-7">
+                                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">
+                                                {item.collaborator.departamento || '---'}
+                                            </span>
                                         </td>
                                         <td className="px-10 py-7">
                                             <span className="text-[10px] font-black text-slate-500 uppercase bg-slate-100 px-4 py-2 rounded-xl group-hover:bg-white group-hover:shadow-sm transition-all">
