@@ -14,7 +14,7 @@ const SECULLUM_API_URL = 'https://pontowebintegracaoexterna.secullum.com.br/Inte
 let cachedToken: string | null = null;
 let tokenExpiry: number | null = null;
 
-async function getAccessToken(): Promise<string> {
+export async function getAccessToken(): Promise<string> {
     const now = Date.now();
     if (cachedToken && tokenExpiry && now < tokenExpiry) {
         return cachedToken;
