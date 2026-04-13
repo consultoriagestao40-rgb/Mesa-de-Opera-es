@@ -22,8 +22,8 @@ export async function getAccessToken(): Promise<string> {
 
     try {
         const configs = await getNexusConfigs();
-        const username = 'cristiano@grupojvsserv.com.br';
-        const password = '8Gmw.@DzuuHEz9';
+        const username = configs['SECULLUM_USERNAME']?.trim();
+        const password = configs['SECULLUM_PASSWORD']?.trim();
         
         if (!username || !password) {
             throw new Error('Secullum credentials missing in NexusConfig');
