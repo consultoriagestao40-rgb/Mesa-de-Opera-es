@@ -103,14 +103,13 @@ export default function NexusSettings() {
         );
     }
 
-    // Default required configs if they don't exist in DB yet
-    const configDefinitions = [
         { key: 'SECULLUM_USERNAME', label: 'Secullum Username', icon: User, type: 'text', description: 'Usuário de acesso ao Ponto Web' },
         { key: 'SECULLUM_PASSWORD', label: 'Secullum Password', icon: Key, type: 'password', description: 'Senha de acesso ao Ponto Web' },
-        { key: 'SECULLUM_DATABASE_ID', label: 'Secullum Database ID', icon: Database, type: 'text', description: 'ID do Banco de Dados no Secullum (ex: 4a2ff5...)' },
-        { key: 'ZAPI_INSTANCE_ID', label: 'Z-API Instance ID', icon: Globe, type: 'text', description: 'ID da Instância Z-API' },
-        { key: 'ZAPI_TOKEN', label: 'Z-API Token', icon: ShieldCheck, type: 'password', description: 'Token de Segurança da Z-API' },
-        { key: 'WHATSAPP_GROUP_ID', label: 'WhatsApp Target ID', icon: Globe, type: 'text', description: 'Número ou ID do Grupo para alertas' },
+        { key: 'SECULLUM_DATABASE_ID', label: 'Secullum Database ID', icon: Database, type: 'text', description: 'ID do Banco de Dados no Secullum' },
+        { key: 'ZAPI_INSTANCE_ID', label: 'Z-API Instance ID', icon: Globe, type: 'text', description: 'ID da Instância Z-API (3F1993DFB5...)' },
+        { key: 'ZAPI_TOKEN', label: 'Z-API Token', icon: Key, type: 'password', description: 'Token da Instância Z-API (81087A6B5C...)' },
+        { key: 'ZAPI_CLIENT_TOKEN', label: 'Z-API Client-Token', icon: ShieldCheck, type: 'password', description: 'Token de Segurança da Conta Z-API (F5c***)' },
+        { key: 'WHATSAPP_GROUP_ID', label: 'WhatsApp Group ID', icon: Globe, type: 'text', description: 'ID do Grupo (120363xxxxx@g.us) — use o botão Buscar Grupos abaixo' },
     ];
 
     return (
