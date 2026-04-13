@@ -104,7 +104,10 @@ export default function NexusHistory() {
                                             <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
                                                 <User size={16} />
                                             </div>
-                                            <span className="font-bold text-gray-800">{log.collaborator?.name}</span>
+                                            <div>
+                                                <span className="font-bold text-gray-800 block">{log.collaborator?.name}</span>
+                                                <span className="text-[10px] text-gray-400 font-black uppercase tracking-wider block mt-0.5">{log.collaborator?.departamento || 'Sem Departamento'}</span>
+                                            </div>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
