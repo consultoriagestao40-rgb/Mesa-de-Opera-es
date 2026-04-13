@@ -12,8 +12,12 @@ export async function GET() {
         const configs = [
             { key: 'SECULLUM_USERNAME', value: 'cristiano@grupojvsserv.com.br' },
             { key: 'SECULLUM_PASSWORD', value: '8Gmw.@DzuuHEz9' },
-            { key: 'SECULLUM_DATABASE_ID', value: '4a2ff5a0-11ab-48fb-8f36-f97ca5af700c' },
+            { key: 'SECULLUM_DATABASE_ID', value: '85740' },
             { key: 'SECULLUM_CLIENT_ID', value: '3' },
+            { key: 'ZAPI_INSTANCE_ID', value: '3F1993DFB59E83474F059E648AE68DF9' },
+            { key: 'ZAPI_TOKEN', value: '81087A6B5C1CAB8AAAC801C4' },
+            { key: 'ZAPI_CLIENT_TOKEN', value: 'F5c1b8f27f6b049c98c4e779d00f67552S' },
+            { key: 'WHATSAPP_GROUP_ID', value: '120363425022319430-group' },
             { key: 'NEXUS_SYSTEM_ACTIVE', value: 'true' }
         ];
 

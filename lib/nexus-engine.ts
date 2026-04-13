@@ -132,20 +132,41 @@ async function checkEvent(
     secEmployeeId: string
 ) {
     const [hours, minutes] = expectedTimeStr.split(':').map(Number);
+    
+    // Construct expectedTime in UTC. 
+    // Secullum says "08:00" (BRT), so we target "11:00" (UTC).
     const expectedTime = new Date(now);
-    expectedTime.setHours(hours, minutes, 0, 0);
+    expectedTime.setHours(hours + 3, minutes, 0, 0);
 
     // Only monitor events that are in the past (past expected time)
     if (now < expectedTime) return;
 
     // Check if there's a punch in the Secullum data
     const punchDetected = punches.some((p: any) => {
-        const pDate = new Date(p.Data || p.DataHora);
         const empMatch = p.FuncionarioId?.toString() === secEmployeeId ||
                          p.funcionarioId?.toString() === secEmployeeId;
-        return empMatch &&
-               isAfter(pDate, addMinutes(expectedTime, -30)) &&
-               isBefore(pDate, addMinutes(expectedTime, 360));
+        
+        if (!empMatch) return false;
+
+        // Secullum 'Batidas' returns daily total columns: Entrada1, Saida1...
+        const columns = [
+            p.Entrada1, p.Saida1, p.Entrada2, p.Saida2, p.Entrada3, 
+            p.Saida3, p.Entrada4, p.Saida4, p.Entrada5, p.Saida5
+        ];
+
+        return columns.some(val => {
+            if (!val || typeof val !== 'string' || !val.includes(':')) return false;
+
+            const [pHours, pMinutes] = val.split(':').map(Number);
+            const punchTime = new Date(expectedTime);
+            // Again, Secullum HH:mm is BRT, so we map to UTC (+3h)
+            punchTime.setHours(pHours + 3, pMinutes, 0, 0);
+
+            const isMatch = isAfter(punchTime, addMinutes(expectedTime, -60)) &&
+                           isBefore(punchTime, addMinutes(expectedTime, 360));
+
+            return isMatch;
+        });
     });
 
     // Look for existing alert cycle for today
@@ -154,18 +175,33 @@ async function checkEvent(
             collaborator_id: collab.id,
             date: { gte: startOfDay(now), lte: endOfDay(now) },
             event_type: type,
+            // When querying for existing, we must match the exactly constructed expectedTime
             expected_time: expectedTime
         }
     });
 
-    // If punch detected, close any open cycle
+    // If punch detected, close any open cycle (including timed-out ones)
     if (punchDetected) {
-        if (cycle && ['PENDENTE', 'EM_ALERTA'].includes(cycle.status)) {
+        if (cycle && ['PENDENTE', 'EM_ALERTA', 'ENCERRADO'].includes(cycle.status)) {
             await prisma.alertCycle.update({
                 where: { id: cycle.id },
                 data: { status: 'CONCLUIDO', completed_at: new Date() }
             });
-            console.log(`[Nexus] ✅ Batida OK: ${collab.name} - ${type}`);
+            console.log(`[Nexus] ✅ Reconciliado (Retroativo): ${collab.name} - ${type}`);
+        } else if (!cycle) {
+            // Se ainda não existia o ciclo, mas já bateu, criamos concluído para o dashboard somar
+            await prisma.alertCycle.create({
+                data: {
+                    collaborator_id: collab.id,
+                    date: now,
+                    expected_time: expectedTime,
+                    event_type: type,
+                    status: 'CONCLUIDO',
+                    completed_at: new Date(),
+                    current_step: 0
+                }
+            });
+            console.log(`[Nexus] ✅ Presença Confirmada: ${collab.name} - ${type}`);
         }
         return;
     }
