@@ -58,7 +58,7 @@ export async function processNexusCycle() {
             // Note: We can expand this for INTERVALO_SAIDA, etc.
         }
 
-        return { success: true, timestamp: brazilNow };
+        return { success: true, timestamp: brazilNow, debugSchema: secEmployees[0] };
     } catch (error: any) {
         console.error('[Nexus Engine] Critical failure:', error.message);
         throw error;
