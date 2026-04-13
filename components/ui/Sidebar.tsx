@@ -56,35 +56,44 @@ export default function NexusSidebar() {
     return (
         <div 
             className={cn(
-                "h-screen sticky top-0 bg-[#0f172a] text-white flex flex-col transition-all duration-500 ease-in-out z-50",
-                collapsed ? "w-24" : "w-72 shadow-2xl shadow-blue-900/20"
+                "h-screen sticky top-0 bg-[#0f172a] text-white flex flex-col transition-all duration-300 ease-in-out z-50",
+                collapsed ? "w-20" : "w-72 shadow-2xl shadow-blue-900/20"
             )}
         >
             {/* Logo Section */}
-            <div className="p-8 flex items-center gap-4 border-b border-white/5 relative overflow-hidden">
+            <div className={cn(
+                "p-8 flex items-center gap-4 border-b border-white/5 relative",
+                collapsed && "justify-center p-6"
+            )}>
                 <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/30">
                     <ShieldAlert size={24} className="text-white animate-pulse" />
                 </div>
                 {!collapsed && (
-                    <div className="animate-in fade-in duration-500">
+                    <div className="animate-in fade-in slide-in-from-left-2 duration-300">
                         <h1 className="font-black text-xl tracking-tighter uppercase">Nexus</h1>
                         <p className="text-[9px] text-blue-400 font-black uppercase tracking-[0.2em] -mt-1 opacity-80">Operacional</p>
                     </div>
                 )}
+                
+                {/* Collapse Toggle Button */}
                 <button 
                     onClick={() => setCollapsed(!collapsed)}
-                    className="absolute -right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-1 rounded-full opacity-0 hover:opacity-100 transition-opacity"
+                    className={cn(
+                        "absolute -right-3 top-10 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all z-[60]",
+                        collapsed && "rotate-180 -right-3"
+                    )}
                 >
-                    {collapsed ? <Menu size={16} /> : <X size={16} />}
+                    <X size={12} className={collapsed ? "hidden" : "block"} />
+                    <Menu size={12} className={collapsed ? "block" : "hidden"} />
                 </button>
             </div>
 
             {/* User Info */}
             {!collapsed && user && (
-                <div className="p-6 mx-4 mt-6 bg-white/5 rounded-3xl border border-white/5 animate-in slide-in-from-left-4 duration-500">
-                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Status: Operante</p>
-                    <p className="text-sm font-bold truncate">{user.name}</p>
-                    <p className="text-[10px] text-white/40 font-bold uppercase">{user.role}</p>
+                <div className="p-6 mx-4 mt-6 bg-white/5 rounded-3xl border border-white/5 animate-in slide-in-from-top-2 duration-300">
+                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1 text-center">Status: Operante</p>
+                    <p className="text-sm font-bold truncate text-center">{user.name}</p>
+                    <p className="text-[10px] text-white/40 font-bold uppercase text-center">{user.role}</p>
                 </div>
             )}
 

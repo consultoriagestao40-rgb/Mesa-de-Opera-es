@@ -12,12 +12,18 @@ import {
     Settings,
     BellRing,
     Activity,
-    Clock
+    Clock,
+    ChevronLeft,
+    ChevronRight,
+    Calendar
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { addDays, subDays, startOfDay } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function NexusDashboard() {
     const [loading, setLoading] = useState(true);
+    const [selectedDate, setSelectedDate] = useState(new Date());
     const [stats, setStats] = useState({ total: 0, completed: 0, alerts: 0 });
     const [cycles, setCycles] = useState<any[]>([]);
     const [user, setUser] = useState<any>(null);
@@ -25,9 +31,10 @@ export default function NexusDashboard() {
 
     const fetchData = async () => {
         try {
+            const dateStr = format(selectedDate, 'yyyy-MM-dd');
             const [userRes, nexusRes] = await Promise.all([
                 fetch('/api/auth/me'),
-                fetch('/api/nexus/alerts')
+                fetch(`/api/nexus/alerts?date=${dateStr}`)
             ]);
 
             if (userRes.ok) {
@@ -53,7 +60,11 @@ export default function NexusDashboard() {
         fetchData();
         const interval = setInterval(fetchData, 30000); // 30s
         return () => clearInterval(interval);
-    }, []);
+    }, [selectedDate]);
+
+    const handlePrevDate = () => setSelectedDate(prev => subDays(prev, 1));
+    const handleNextDate = () => setSelectedDate(prev => addDays(prev, 1));
+    const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
 
     const getStatusStyle = (step: number) => {
         if (step === 3) return 'bg-red-500 text-white shadow-lg shadow-red-200 animate-nexus-pulse';
@@ -82,15 +93,50 @@ export default function NexusDashboard() {
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-1000">
             {/* Command Header */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
-                <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse border-4 border-emerald-400/20" />
-                        <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Live: Operação em Tempo Real</span>
+                <div className="flex flex-col gap-6 w-full lg:w-auto">
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className={cn(
+                                "w-2 h-2 rounded-full border-4",
+                                isToday ? "bg-emerald-400 border-emerald-400/20 animate-pulse" : "bg-slate-300 border-slate-300/20"
+                            )} />
+                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">
+                                {isToday ? 'Live: Operação em Tempo Real' : 'Consulta: Histórico Operacional'}
+                            </span>
+                        </div>
+                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter flex items-center gap-4">
+                            Monitor de Exceções
+                        </h1>
+                        <p className="text-slate-500 font-bold mt-1">Sincronizado via <span className="text-blue-600">Secullum Ponto Web</span></p>
                     </div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tighter flex items-center gap-4">
-                        Monitor de Exceções
-                    </h1>
-                    <p className="text-slate-500 font-bold mt-1">Sincronizado via <span className="text-blue-600">Secullum Ponto Web</span></p>
+
+                    {/* Date Navigator UI (Matching Reference) */}
+                    <div className="flex items-center bg-white border border-slate-100 rounded-3xl p-1 shadow-sm w-fit">
+                        <button 
+                            onClick={handlePrevDate}
+                            className="p-3 hover:bg-slate-50 rounded-2xl text-slate-400 transition-all active:scale-90"
+                        >
+                            <ChevronLeft size={20} />
+                        </button>
+                        
+                        <div className="flex items-center gap-3 px-6 py-2 border-x border-slate-50 min-w-[200px] justify-center">
+                            <Calendar size={18} className="text-slate-400" />
+                            <span className="font-black text-slate-700 tracking-tight capitalize">
+                                {format(selectedDate, "dd 'De' MMMM", { locale: ptBR })}
+                            </span>
+                        </div>
+
+                        <button 
+                            onClick={handleNextDate}
+                            disabled={isToday}
+                            className={cn(
+                                "p-3 rounded-2xl transition-all active:scale-90",
+                                isToday ? "text-slate-200 cursor-not-allowed" : "hover:bg-slate-50 text-slate-400"
+                            )}
+                        >
+                            <ChevronRight size={20} />
+                        </button>
+                    </div>
                 </div>
                 
                 <div className="flex items-center gap-4">
@@ -100,8 +146,8 @@ export default function NexusDashboard() {
                     >
                         <RefreshCw size={20} />
                     </button>
-                    <div className="nexus-button-primary flex items-center gap-3">
-                        <BellRing size={20} className="animate-bounce" />
+                    <div className="nexus-button-primary flex items-center gap-3 shadow-lg shadow-blue-200">
+                        <BellRing size={20} className={isToday ? "animate-bounce" : ""} />
                         <span>Mesa de Operações</span>
                     </div>
                 </div>
