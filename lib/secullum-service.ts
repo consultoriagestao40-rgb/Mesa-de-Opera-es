@@ -45,7 +45,7 @@ async function getAccessToken(): Promise<string> {
         return cachedToken!;
     } catch (error: any) {
         console.error('[Secullum Auth] Failure:', error.response?.data || error.message);
-        throw new Error('Secullum Authentication Failed');
+        throw new Error(`Secullum Authentication Failed: ${JSON.stringify(error.response?.data || error.message)}`);
     }
 }
 

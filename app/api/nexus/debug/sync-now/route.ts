@@ -18,12 +18,9 @@ export async function GET() {
             { key: 'NEXUS_SYSTEM_ACTIVE', value: 'true' }
         ];
 
+        const { setNexusConfig } = require('@/lib/config-service');
         for (const config of configs) {
-            await prisma.nexusConfig.upsert({
-                where: { key: config.key },
-                update: { value: config.value },
-                create: { key: config.key, value: config.value }
-            });
+            await setNexusConfig(config.key, config.value);
         }
 
         // 2. Disparar o Sincronismo usando o processo completo
