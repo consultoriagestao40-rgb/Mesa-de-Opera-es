@@ -109,14 +109,16 @@ export async function syncCollaborators(secEmployees: any[]) {
                 name: nomeFinal,
                 active: isActive,
                 pis: (emp.Pis || emp.pis || '').toString() || null,
-                posto: emp.Empresa?.Nome || emp.empresaNome || 'Importado Secullum'
+                posto: emp.Empresa?.Nome || emp.empresaNome || 'Importado Secullum',
+                departamento: emp.Departamento?.Descricao || null
             },
             create: {
                 name: nomeFinal,
                 secullumId: secId,
                 pis: (emp.Pis || emp.pis || '').toString() || null,
                 active: isActive,
-                posto: emp.Empresa?.Nome || emp.empresaNome || 'Importado Secullum'
+                posto: emp.Empresa?.Nome || emp.empresaNome || 'Importado Secullum',
+                departamento: emp.Departamento?.Descricao || null
             }
         });
     }
@@ -271,6 +273,7 @@ async function triggerNexusAlert(
     const message = `${icon} *${banner} — NEXUS OPERACIONAL* ${icon}\n\n` +
         `👤 *Colaborador:* ${collab.name}\n` +
         `📍 *Posto:* ${collab.posto || 'Geral'}\n` +
+        `🏢 *Depto:* ${collab.departamento || 'Não informado'}\n` +
         `🕒 *Evento:* ${eventLabels[type] || type}\n` +
         `⏰ *Horário Previsto:* ${time}\n` +
         `❌ *Batida não registrada no Secullum*\n\n` +

@@ -26,6 +26,7 @@ model Collaborator {
   pis         String?  @unique
   secullumId  String?  @unique
   posto       String?  // Local de Trabalho / Posto
+  departamento String? // Departamento / Shopping vinculado
   active      Boolean  @default(true)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
