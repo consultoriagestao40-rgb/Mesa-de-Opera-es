@@ -154,7 +154,16 @@ export default function CollaboratorsPage() {
         }
     };
 
-    const filteredCollaborators = collaborators.filter(c => 
+    const activeCollaborators = collaborators.filter(c => c.active);
+    const inactiveCollaborators = collaborators.filter(c => !c.active);
+
+    const filteredActive = activeCollaborators.filter(c => 
+        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.posto?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.secullumId?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const filteredInactive = inactiveCollaborators.filter(c => 
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.posto?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.secullumId?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -237,8 +246,11 @@ export default function CollaboratorsPage() {
             {/* List Table */}
             <div className="nexus-card overflow-hidden">
                 <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
-                    <h3 className="font-black text-slate-800 uppercase tracking-widest text-[10px]">Base de Colaboradores Ativos</h3>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{filteredCollaborators.length} Registros</span>
+                    <h3 className="font-black text-slate-800 uppercase tracking-widest text-[10px] flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                        Base de Colaboradores Ativos
+                    </h3>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{filteredActive.length} Registros</span>
                 </div>
 
                 {loading ? (
@@ -246,13 +258,13 @@ export default function CollaboratorsPage() {
                         <Loader2 className="animate-spin h-12 w-12 text-blue-600 mb-4" />
                         <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Acessando Banco Nexus...</p>
                     </div>
-                ) : filteredCollaborators.length === 0 ? (
+                ) : filteredActive.length === 0 ? (
                     <div className="py-24 text-center">
                         <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
                             <UserIcon size={40} className="text-slate-200" />
                         </div>
-                        <p className="text-slate-400 font-black uppercase tracking-tighter text-lg">Nenhum resultado encontrado</p>
-                        <p className="text-slate-300 text-sm font-bold mt-1">Refine sua busca ou cadastre um novo colaborador.</p>
+                        <p className="text-slate-400 font-black uppercase tracking-tighter text-lg">Nenhum resultado ativo</p>
+                        <p className="text-slate-300 text-sm font-bold mt-1">Refine sua busca ou verifique inativos.</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -266,7 +278,7 @@ export default function CollaboratorsPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {filteredCollaborators.map((item) => (
+                                {filteredActive.map((item) => (
                                     <tr key={item.id} className="hover:bg-slate-50/80 transition-all cursor-default group">
                                         <td className="px-10 py-7">
                                             {editingId === item.id ? (
@@ -342,6 +354,96 @@ export default function CollaboratorsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Inactive List Table */}
+            {filteredInactive.length > 0 && !loading && (
+                <div className="nexus-card overflow-hidden opacity-70 hover:opacity-100 transition-opacity">
+                    <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-100/50">
+                        <h3 className="font-black text-slate-500 uppercase tracking-widest text-[10px] flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                            Colaboradores Inativos / Desligados
+                        </h3>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{filteredInactive.length} Registros</span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-slate-50 bg-slate-50/10">
+                                    <th className="px-10 py-6">Colaborador</th>
+                                    <th className="px-10 py-6">Posto de Trabalho</th>
+                                    <th className="px-10 py-6">Secullum ID</th>
+                                    <th className="px-10 py-6 text-right">Ações de Comando</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50 opacity-80">
+                                {filteredInactive.map((item) => (
+                                    <tr key={item.id} className="hover:bg-slate-50/80 transition-all cursor-default group">
+                                        <td className="px-10 py-5">
+                                            {editingId === item.id ? (
+                                                <input
+                                                    type="text"
+                                                    value={editName}
+                                                    onChange={(e) => setEditName(e.target.value)}
+                                                    className="w-full bg-white border border-slate-200 rounded-xl p-2 text-sm focus:outline-none"
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-slate-200 flex items-center justify-center text-slate-400 font-black text-xs">
+                                                        {item.name.charAt(0)}
+                                                    </div>
+                                                    <span className="font-bold text-slate-500 line-through decoration-slate-300">{item.name}</span>
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-10 py-5">
+                                            {editingId === item.id ? (
+                                                <input
+                                                    type="text"
+                                                    value={editPosto}
+                                                    onChange={(e) => setEditPosto(e.target.value)}
+                                                    className="w-full bg-white border border-slate-200 rounded-xl p-2 text-sm focus:outline-none"
+                                                />
+                                            ) : (
+                                                <span className="text-[10px] font-black text-slate-400 uppercase bg-slate-100 px-3 py-1.5 rounded-lg">
+                                                    {item.posto || '---'}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-10 py-5">
+                                            <span className="text-sm font-bold text-slate-400">
+                                                {item.secullumId || '---'}
+                                            </span>
+                                        </td>
+                                        <td className="px-10 py-5 text-right">
+                                            {editingId === item.id ? (
+                                                <div className="flex justify-end gap-2">
+                                                    <button onClick={saveEdit} disabled={updating} className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg">
+                                                        <Check size={18} />
+                                                    </button>
+                                                    <button onClick={cancelEdit} disabled={updating} className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg">
+                                                        <X size={18} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <button onClick={() => startEdit(item)} className="p-2 text-blue-400 hover:bg-blue-50 rounded-lg">
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button onClick={() => setItemToDelete(item)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {/* Premium Delete Modal */}
             {itemToDelete && (
