@@ -12,7 +12,10 @@ import {
     LogOut,
     Menu,
     X,
-    BellRing
+    BellRing,
+    ChevronLeft,
+    PanelLeftClose,
+    PanelLeftOpen
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -60,31 +63,31 @@ export default function NexusSidebar() {
                 collapsed ? "w-20" : "w-72 shadow-2xl shadow-blue-900/20"
             )}
         >
-            {/* Logo Section */}
+            {/* Header / Logo + Toggle */}
             <div className={cn(
-                "p-8 flex items-center gap-4 border-b border-white/5 relative",
-                collapsed && "justify-center p-6"
+                "p-8 flex items-center justify-between border-b border-white/5 relative",
+                collapsed && "flex-col p-6 gap-6"
             )}>
-                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/30">
-                    <ShieldAlert size={24} className="text-white animate-pulse" />
-                </div>
-                {!collapsed && (
-                    <div className="animate-in fade-in slide-in-from-left-2 duration-300">
-                        <h1 className="font-black text-xl tracking-tighter uppercase">Nexus</h1>
-                        <p className="text-[9px] text-blue-400 font-black uppercase tracking-[0.2em] -mt-1 opacity-80">Operacional</p>
+                <div className="flex items-center gap-4 overflow-hidden">
+                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/30">
+                        <ShieldAlert size={24} className="text-white animate-pulse" />
                     </div>
-                )}
+                    {!collapsed && (
+                        <div className="animate-in fade-in slide-in-from-left-2 duration-300">
+                            <h1 className="font-black text-xl tracking-tighter uppercase whitespace-nowrap">Nexus</h1>
+                            <p className="text-[9px] text-blue-400 font-black uppercase tracking-[0.2em] -mt-1 opacity-80 whitespace-nowrap">Operacional</p>
+                        </div>
+                    )}
+                </div>
                 
-                {/* Collapse Toggle Button */}
                 <button 
                     onClick={() => setCollapsed(!collapsed)}
                     className={cn(
-                        "absolute -right-3 top-10 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all z-[60]",
-                        collapsed && "rotate-180 -right-3"
+                        "p-2 hover:bg-white/5 rounded-xl transition-all text-white/30 hover:text-white",
+                        collapsed && "p-1"
                     )}
                 >
-                    <X size={12} className={collapsed ? "hidden" : "block"} />
-                    <Menu size={12} className={collapsed ? "block" : "hidden"} />
+                    {collapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
                 </button>
             </div>
 
