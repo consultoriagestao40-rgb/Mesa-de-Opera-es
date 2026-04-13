@@ -1,0 +1,3355 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Secullum Ponto Web - Integração Externa",
+    "description": "A Integração Externa está disponível para os planos PRO ou superior, em caso de dúvidas contate o suporte técnico.\r\n\r\nATENÇÃO: Para utilizar a integração externa, é necessário que as requisições sejam feitas com o protocolo TLS (Transport Layer Security) na versão 1.2 ou superior.",
+    "contact": {
+      "name": "Secullum Suporte",
+      "url": "https://www.secullum.com.br/pt/canal-cliente#suporte-tecnico",
+      "email": ""
+    },
+    "license": {
+      "name": "Manual da Integração Externa",
+      "url": "https://github.com/Secullum/PontoWebIntegracaoExternaExemplo/blob/master/Integracao_Externa_Ponto_Web.pdf"
+    },
+    "version": "v1"
+  },
+  "paths": {
+    "/IntegracaoExterna/Atividades": {
+      "post": {
+        "tags": [
+          "Atividades"
+        ],
+        "operationId": "SalvarAtividadeAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/Atividade"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Atividades"
+        ],
+        "operationId": "ListarAtividadesAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Atividades"
+        ],
+        "operationId": "ApagarAtividadeAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/AtividadesLancamentos": {
+      "post": {
+        "tags": [
+          "Atividades Lançamentos"
+        ],
+        "operationId": "SalvarLancamentoAtividadesAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/LancamentoAtividade"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Atividades Lançamentos"
+        ],
+        "operationId": "ListarAtividadesLancadasAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "FuncionarioPis",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "FuncionarioCpf",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "AtividadeDescricao",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "DataInicio",
+            "description": "ex: yyyy-MM-dd ",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "DataFim",
+            "description": "ex: yyyy-MM-dd ",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Atividades Lançamentos"
+        ],
+        "operationId": "ExcluirAtividadeLancadaAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "idLancamentoAtividade",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Batidas": {
+      "get": {
+        "tags": [
+          "Batidas"
+        ],
+        "operationId": "ListarBatidasAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "DataInicio",
+            "description": "ex: yyyy-MM-dd ",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "DataFim",
+            "description": "ex: yyyy-MM-dd ",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "FuncionarioPis",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "FuncionarioCpf",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "EmpresaDocumento",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "HoraInicio",
+            "description": "ex: HH:mm ",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "HoraFim",
+            "description": "ex: HH:mm ",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Calcular": {
+      "post": {
+        "tags": [
+          "Cálculos"
+        ],
+        "operationId": "CalcularAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/CalculosFiltrosIntegracaoExterna"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Calcular/SomenteTotais": {
+      "post": {
+        "tags": [
+          "Cálculos"
+        ],
+        "operationId": "CalcularSomenteTotaisAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/CalculosFiltrosIntegracaoExterna"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/CartaoPonto": {
+      "delete": {
+        "tags": [
+          "Cartão Ponto"
+        ],
+        "operationId": "DeleteExclusaoBatidaAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/ParametrosExclusaoBatida"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/CartaoPonto/Justificativa": {
+      "post": {
+        "tags": [
+          "Cartão Ponto"
+        ],
+        "operationId": "PostInclusaoJustificativaAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/ParametrosInclusaoJustificativa"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/CartaoPonto/Manual": {
+      "post": {
+        "tags": [
+          "Cartão Ponto"
+        ],
+        "operationId": "PostInclusaoManualAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/ParametrosInclusaoManual"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/CartaoPonto/Troca": {
+      "post": {
+        "tags": [
+          "Cartão Ponto"
+        ],
+        "operationId": "PostTrocaBatidaColunaAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/ParametrosTrocaColuna"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/CartaoPonto/TrocaDia": {
+      "post": {
+        "tags": [
+          "Cartão Ponto"
+        ],
+        "operationId": "PostTrocaBatidaDiaAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/ParametrosTrocaDia"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Departamentos": {
+      "post": {
+        "tags": [
+          "Departamentos"
+        ],
+        "operationId": "SalvarAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/Departamento"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Departamentos"
+        ],
+        "operationId": "ListarDepartamentosAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Departamentos"
+        ],
+        "operationId": "ApagarDepartamento",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Empresas": {
+      "post": {
+        "tags": [
+          "Empresas"
+        ],
+        "operationId": "SalvarAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/EmpresaIntegracaoExterna"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Empresas"
+        ],
+        "operationId": "ListarEmpresasAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cnpjCpf",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Empresas"
+        ],
+        "operationId": "ApagarEmpresaAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cnpjCpf",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Equipamentos": {
+      "get": {
+        "tags": [
+          "Equipamentos"
+        ],
+        "operationId": "ListarEquipamentosAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Estruturas": {
+      "get": {
+        "tags": [
+          "Estruturas"
+        ],
+        "operationId": "ListarEstruturaAsync",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Estruturas"
+        ],
+        "operationId": "SalvarAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/EstruturaIntegracaoExterna"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Estruturas"
+        ],
+        "operationId": "ApagarAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Estruturas/Funcionarios": {
+      "get": {
+        "tags": [
+          "Estruturas"
+        ],
+        "operationId": "BuscarFuncionariosAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricaoEstrutura",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Estruturas/Responsaveis": {
+      "get": {
+        "tags": [
+          "Estruturas"
+        ],
+        "operationId": "BuscarResponsaveisAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/FonteDados": {
+      "get": {
+        "tags": [
+          "Fonte de Dados"
+        ],
+        "operationId": "ListarFonteDadosAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "DataInicio",
+            "description": "ex: yyyy-MM-dd ",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "DataFim",
+            "description": "ex: yyyy-MM-dd ",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "HoraInicio",
+            "description": "ex: HH:mm ",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "HoraFim",
+            "description": "ex: HH:mm ",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "FuncionarioPis",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "FuncionarioCpf",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "EquipamentoId",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "query",
+            "name": "Origem"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/FonteDados/APartirDoId": {
+      "get": {
+        "tags": [
+          "Fonte de Dados"
+        ],
+        "operationId": "ListarFonteDadosAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "fonteDadosId",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Funcionarios": {
+      "post": {
+        "tags": [
+          "Funcionários"
+        ],
+        "operationId": "SalvarAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/FuncionarioIntegracaoExternaPost"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Funcionários"
+        ],
+        "operationId": "ListarFuncionariosPorPisAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pis",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Funcionários"
+        ],
+        "operationId": "ApagarFuncionarioPorPisAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pis",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Funcionarios/Cpf": {
+      "get": {
+        "tags": [
+          "Funcionários"
+        ],
+        "operationId": "ListarFuncionariosPorCpfAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cpf",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Funcionários"
+        ],
+        "operationId": "ApagarFuncionarioPorCpfAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cpf",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Funcionarios/Fotos": {
+      "get": {
+        "tags": [
+          "Funcionários"
+        ],
+        "operationId": "ObterFotoAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "funcionarioId",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/FuncionariosAfastamentos": {
+      "post": {
+        "tags": [
+          "Afastamentos"
+        ],
+        "operationId": "SalvarAfastamentoAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/AfastamentoIntegracaoExterna"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Afastamentos"
+        ],
+        "operationId": "ListarAfastamentosPorPisAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "dataInicio",
+            "description": "ex: yyyy-MM-dd ",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "dataFim",
+            "description": "ex: yyyy-MM-dd ",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "funcionarioPis",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Afastamentos"
+        ],
+        "operationId": "ApagarAfastamentoPorPisAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "dataInicio",
+            "description": "ex: yyyy-MM-dd ",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "dataFim",
+            "description": "ex: yyyy-MM-dd ",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "funcionarioPis",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/FuncionariosAfastamentos/Cpf": {
+      "get": {
+        "tags": [
+          "Afastamentos"
+        ],
+        "operationId": "ListarAfastamentosPorCpfAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "dataInicio",
+            "description": "ex: yyyy-MM-dd ",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "dataFim",
+            "description": "ex: yyyy-MM-dd ",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "funcionarioCpf",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Afastamentos"
+        ],
+        "operationId": "ApagarAfastamentoPorCpfAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "dataInicio",
+            "description": "ex: yyyy-MM-dd ",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "dataFim",
+            "description": "ex: yyyy-MM-dd ",
+            "required": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "in": "query",
+            "name": "funcionarioCpf",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Funcoes": {
+      "post": {
+        "tags": [
+          "Funções"
+        ],
+        "operationId": "SalvarAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/Funcao"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Funções"
+        ],
+        "operationId": "ListarFuncoesAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Funções"
+        ],
+        "operationId": "ApagarFuncao",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/GravarLogsIniciarBkp": {
+      "post": {
+        "tags": [
+          "IntegracaoExterna"
+        ],
+        "operationId": "GravarLogsIniciarBkp",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Horarios": {
+      "get": {
+        "tags": [
+          "Horários"
+        ],
+        "operationId": "ListarHorariosAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "numero",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Horários"
+        ],
+        "operationId": "ApagarHorarioAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "numero",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/InclusaoPonto/Configuracoes": {
+      "get": {
+        "tags": [
+          "Incluir Ponto"
+        ],
+        "operationId": "GetConfiguracoesAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pis",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/InclusaoPonto/Configuracoes/Cpf": {
+      "get": {
+        "tags": [
+          "Incluir Ponto"
+        ],
+        "operationId": "GetConfiguracoesPorCpfAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cpf",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/InclusaoPonto/Incluir": {
+      "post": {
+        "tags": [
+          "Incluir Ponto"
+        ],
+        "operationId": "PostInclusaoAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/DadosInclusaoPonto"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/InclusaoPonto/Pendencias": {
+      "get": {
+        "tags": [
+          "Incluir Ponto"
+        ],
+        "operationId": "GetPendenciasAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pis",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/InclusaoPonto/Pendencias/Cpf": {
+      "get": {
+        "tags": [
+          "Incluir Ponto"
+        ],
+        "operationId": "GetPendenciasPorCpfAsync",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cpf",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/Justificativas": {
+      "post": {
+        "tags": [
+          "Justificativas"
+        ],
+        "operationId": "SalvarAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/Justificativa"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Justificativas"
+        ],
+        "operationId": "ListarJustificativasAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Justificativas"
+        ],
+        "operationId": "ApagarJustificativaAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/MotivosDemissao": {
+      "post": {
+        "tags": [
+          "Motivos de Demissão"
+        ],
+        "operationId": "SalvarAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/MotivoDemissao"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Motivos de Demissão"
+        ],
+        "operationId": "ListarMotivosDemissaoAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Motivos de Demissão"
+        ],
+        "operationId": "ApagarMotivoDemissaoAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/PerguntasAdicionais": {
+      "post": {
+        "tags": [
+          "Perguntas Adicionais"
+        ],
+        "operationId": "SalvarAsync",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/PerguntaAdicional"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Perguntas Adicionais"
+        ],
+        "operationId": "ListarPerguntasAdicionaisAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "grupo",
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Perguntas Adicionais"
+        ],
+        "operationId": "ApagarPerguntaAdicionalAsync",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "descricao",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "grupo",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ValidationError"
+              }
+            }
+          },
+          "500": {
+            "description": "Server Error"
+          }
+        }
+      }
+    },
+    "/IntegracaoExterna/PontoOffline/AssinaturaArquivo/Assinar": {
+      "post": {
+        "tags": [
+          "IntegracaoExternaPontoOffline"
+        ],
+        "operationId": "Assinar",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "secullumidbancoselecionado",
+            "description": "usar id do banco",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "in": "formData",
+            "name": "file",
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "AfastamentoIntegracaoExterna": {
+      "type": "object",
+      "properties": {
+        "numeroPis": {
+          "type": "string"
+        },
+        "cpf": {
+          "type": "string"
+        },
+        "inicio": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "fim": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "motivo": {
+          "type": "string"
+        },
+        "dataInclusao": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "justificativaNome": {
+          "type": "string"
+        }
+      }
+    },
+    "Atividade": {
+      "type": "object",
+      "properties": {
+        "descricao": {
+          "type": "string"
+        },
+        "descricaoAbreviada": {
+          "type": "string"
+        },
+        "tipoDeAtividade": {
+          "$ref": "#/definitions/TipoAtividade"
+        }
+      }
+    },
+    "CalculosFiltrosIntegracaoExterna": {
+      "type": "object",
+      "properties": {
+        "funcionarioPis": {
+          "type": "string"
+        },
+        "funcionarioCpf": {
+          "type": "string"
+        },
+        "dataInicial": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "dataFinal": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "centrosDeCustos": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "DadosInclusaoPonto": {
+      "type": "object",
+      "properties": {
+        "pis": {
+          "type": "string"
+        },
+        "cpf": {
+          "type": "string"
+        },
+        "endereco": {
+          "type": "string"
+        },
+        "latitude": {
+          "format": "double",
+          "type": "number"
+        },
+        "longitude": {
+          "format": "double",
+          "type": "number"
+        },
+        "precisao": {
+          "format": "double",
+          "type": "number"
+        },
+        "dataHora": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "justificativa": {
+          "type": "string"
+        },
+        "foto": {
+          "type": "string"
+        },
+        "identificacaoDispositivo": {
+          "type": "string"
+        },
+        "marcacaoOffline": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Departamento": {
+      "type": "object",
+      "properties": {
+        "descricao": {
+          "type": "string"
+        },
+        "nfolha": {
+          "type": "string"
+        }
+      }
+    },
+    "EmpresaIntegracaoExterna": {
+      "type": "object",
+      "properties": {
+        "nome": {
+          "type": "string"
+        },
+        "documento": {
+          "type": "string"
+        },
+        "inscricao": {
+          "type": "string"
+        },
+        "endereco": {
+          "type": "string"
+        },
+        "bairro": {
+          "type": "string"
+        },
+        "cidade": {
+          "type": "string"
+        },
+        "cep": {
+          "type": "string"
+        },
+        "uf": {
+          "type": "string"
+        },
+        "pais": {
+          "type": "string"
+        },
+        "telefone": {
+          "type": "string"
+        },
+        "fax": {
+          "type": "string"
+        },
+        "cei": {
+          "type": "string"
+        },
+        "nFolhaEmpresa": {
+          "type": "string"
+        },
+        "logotipo": {
+          "type": "string"
+        },
+        "responsavelNome": {
+          "type": "string"
+        },
+        "responsavelCargo": {
+          "type": "string"
+        },
+        "responsavelEmail": {
+          "type": "string"
+        },
+        "tipoDocumento": {
+          "$ref": "#/definitions/TipoDeDocumento"
+        },
+        "configEspecificaInclusaoManualPonto": {
+          "type": "string"
+        },
+        "utilizaRepC": {
+          "type": "boolean"
+        },
+        "utilizaRepA": {
+          "type": "boolean"
+        },
+        "utilizaRepP": {
+          "type": "boolean"
+        }
+      }
+    },
+    "EstruturaIntegracaoExterna": {
+      "type": "object",
+      "properties": {
+        "descricao": {
+          "type": "string"
+        },
+        "estruturaPaiDescricao": {
+          "type": "string"
+        },
+        "responsaveis": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PessoasDocumentos"
+          }
+        },
+        "funcionariosVinculados": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PessoasDocumentos"
+          }
+        }
+      }
+    },
+    "Funcao": {
+      "type": "object",
+      "properties": {
+        "descricao": {
+          "type": "string"
+        }
+      }
+    },
+    "FuncionarioIntegracaoExternaPost": {
+      "type": "object",
+      "properties": {
+        "empresaId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "nome": {
+          "type": "string"
+        },
+        "numeroFolha": {
+          "type": "string"
+        },
+        "numeroIdentificador": {
+          "type": "string"
+        },
+        "codigoHolerite": {
+          "type": "string"
+        },
+        "numeroPis": {
+          "type": "string"
+        },
+        "carteira": {
+          "type": "string"
+        },
+        "observacao": {
+          "type": "string"
+        },
+        "endereco": {
+          "type": "string"
+        },
+        "bairro": {
+          "type": "string"
+        },
+        "cidade": {
+          "type": "string"
+        },
+        "uf": {
+          "type": "string"
+        },
+        "cep": {
+          "type": "string"
+        },
+        "telefone": {
+          "type": "string"
+        },
+        "celular": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "rg": {
+          "type": "string"
+        },
+        "expedicaoRg": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "ssp": {
+          "type": "string"
+        },
+        "cpf": {
+          "type": "string"
+        },
+        "mae": {
+          "type": "string"
+        },
+        "pai": {
+          "type": "string"
+        },
+        "nascimento": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "naoVerificarDigital": {
+          "type": "boolean"
+        },
+        "masculino": {
+          "type": "boolean"
+        },
+        "master": {
+          "type": "boolean"
+        },
+        "nacionalidade": {
+          "type": "string"
+        },
+        "naturalidade": {
+          "type": "string"
+        },
+        "numeroProvisorio": {
+          "type": "string"
+        },
+        "admissao": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "demissao": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "empresaCnpjCpf": {
+          "type": "string"
+        },
+        "horarioNumero": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "departamentoDescricao": {
+          "type": "string"
+        },
+        "funcaoDescricao": {
+          "type": "string"
+        },
+        "filtro1Descricao": {
+          "type": "string"
+        },
+        "filtro2Descricao": {
+          "type": "string"
+        },
+        "motivoDemissaoDescricao": {
+          "type": "string"
+        },
+        "senhaEquipamento": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "foto": {
+          "type": "string"
+        },
+        "alterouFoto": {
+          "type": "boolean"
+        },
+        "invisivel": {
+          "type": "boolean"
+        },
+        "desabilitarAssinaturaEletronica": {
+          "type": "boolean"
+        },
+        "descricaoEstrutura": {
+          "type": "string"
+        },
+        "duplicarDemitido": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Justificativa": {
+      "type": "object",
+      "properties": {
+        "nomeAbreviado": {
+          "type": "string"
+        },
+        "nomeCompleto": {
+          "type": "string"
+        },
+        "valorDia": {
+          "type": "string"
+        },
+        "ajuste": {
+          "type": "boolean"
+        },
+        "abono2": {
+          "type": "boolean"
+        },
+        "abono3": {
+          "type": "boolean"
+        },
+        "abono4": {
+          "type": "boolean"
+        },
+        "lancarComoHorasFalta": {
+          "type": "boolean"
+        },
+        "naoAbonarHorasNoturnas": {
+          "type": "boolean"
+        },
+        "descontarHorasBancoDeHoras": {
+          "type": "boolean"
+        },
+        "naoPermitirFuncionariosUtilizar": {
+          "type": "boolean"
+        },
+        "exigirFotoAtestado": {
+          "type": "boolean"
+        },
+        "marcarAutomaticamenteNaoAlterarHorasEmAjuste": {
+          "type": "boolean"
+        },
+        "descontarDsr": {
+          "type": "boolean"
+        },
+        "descontarDsrIncluirFeriados": {
+          "type": "boolean"
+        },
+        "naoCalcularDsr": {
+          "type": "boolean"
+        },
+        "calcularComoFolga": {
+          "type": "boolean"
+        },
+        "calcularHorasAtrasoComoFalta": {
+          "type": "boolean"
+        },
+        "usarJustificativaParaContagemDeFerias": {
+          "type": "boolean"
+        },
+        "desativar": {
+          "type": "boolean"
+        }
+      }
+    },
+    "LancamentoAtividade": {
+      "required": [
+        "atividadeDescricao",
+        "dataInicio",
+        "horaInicio"
+      ],
+      "type": "object",
+      "properties": {
+        "funcionarioPis": {
+          "type": "string"
+        },
+        "funcionarioCpf": {
+          "type": "string"
+        },
+        "lancamentoAtividadeId": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "atividadeDescricao": {
+          "type": "string"
+        },
+        "dataInicio": {
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "horaInicio": {
+          "type": "string",
+          "example": "08:00"
+        },
+        "dataFim": {
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "horaFim": {
+          "type": "string",
+          "example": "08:00"
+        },
+        "observacao": {
+          "type": "string"
+        },
+        "lancarParaTodos": {
+          "type": "boolean"
+        }
+      }
+    },
+    "MotivoDemissao": {
+      "type": "object",
+      "properties": {
+        "descricao": {
+          "type": "string"
+        }
+      }
+    },
+    "ParametrosExclusaoBatida": {
+      "type": "object",
+      "properties": {
+        "cpf": {
+          "type": "string"
+        },
+        "pis": {
+          "type": "string"
+        },
+        "numeroFolha": {
+          "type": "string"
+        },
+        "data": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "coluna": {
+          "type": "string"
+        },
+        "motivo": {
+          "type": "string"
+        }
+      }
+    },
+    "ParametrosInclusaoJustificativa": {
+      "type": "object",
+      "properties": {
+        "cpf": {
+          "type": "string"
+        },
+        "pis": {
+          "type": "string"
+        },
+        "numeroFolha": {
+          "type": "string"
+        },
+        "data": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "grupo": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "justificativa": {
+          "type": "string"
+        }
+      }
+    },
+    "ParametrosInclusaoManual": {
+      "type": "object",
+      "properties": {
+        "cpf": {
+          "type": "string"
+        },
+        "pis": {
+          "type": "string"
+        },
+        "numeroFolha": {
+          "type": "string"
+        },
+        "data": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "hora": {
+          "type": "string"
+        },
+        "coluna": {
+          "type": "string"
+        },
+        "motivo": {
+          "type": "string"
+        }
+      }
+    },
+    "ParametrosTrocaColuna": {
+      "type": "object",
+      "properties": {
+        "cpf": {
+          "type": "string"
+        },
+        "pis": {
+          "type": "string"
+        },
+        "numeroFolha": {
+          "type": "string"
+        },
+        "data": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "colunaOrigem": {
+          "type": "string"
+        },
+        "colunaDestino": {
+          "type": "string"
+        }
+      }
+    },
+    "ParametrosTrocaDia": {
+      "type": "object",
+      "properties": {
+        "cpf": {
+          "type": "string"
+        },
+        "pis": {
+          "type": "string"
+        },
+        "numeroFolha": {
+          "type": "string"
+        },
+        "dataOrigem": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "dataDestino": {
+          "format": "date-time",
+          "type": "string",
+          "example": "2022-06-26"
+        },
+        "coluna": {
+          "type": "string"
+        }
+      }
+    },
+    "PerguntaAdicional": {
+      "type": "object",
+      "properties": {
+        "descricao": {
+          "type": "string"
+        },
+        "grupo": {
+          "type": "string"
+        },
+        "ordem": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "tamanho": {
+          "format": "int32",
+          "type": "integer"
+        }
+      }
+    },
+    "PerguntaAdicionalRespostaIntegracaoExterna": {
+      "type": "object",
+      "properties": {
+        "resposta": {
+          "type": "string"
+        },
+        "perguntaGrupo": {
+          "type": "string"
+        },
+        "perguntaDescricao": {
+          "type": "string"
+        }
+      }
+    },
+    "PessoasDocumentos": {
+      "type": "object",
+      "properties": {
+        "cpf": {
+          "type": "string"
+        },
+        "numeroPis": {
+          "type": "string"
+        }
+      }
+    },
+    "ProblemDetails": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "instance": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": { }
+    },
+    "TipoAtividade": {
+      "format": "int32",
+      "enum": [
+        0,
+        1
+      ],
+      "type": "integer"
+    },
+    "TipoDeDocumento": {
+      "format": "int32",
+      "enum": [
+        0,
+        1,
+        2
+      ],
+      "type": "integer"
+    },
+    "TipoOrigem": {
+      "format": "int32",
+      "enum": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "type": "integer"
+    },
+    "ValidationError": {
+      "type": "object",
+      "properties": {
+        "property": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "data": { }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "IntegracaoExterna",
+      "description": "Controller para integração externa"
+    }
+  ]
+}

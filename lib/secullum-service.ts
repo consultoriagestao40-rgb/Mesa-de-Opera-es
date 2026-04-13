@@ -8,7 +8,7 @@ import { getNexusConfigs } from './config-service';
  */
 
 const SECULLUM_AUTH_URL = 'https://autenticador.secullum.com.br/Token';
-const SECULLUM_API_URL = 'https://pontoweb.secullum.com.br/api/IntegracaoExterna';
+const SECULLUM_API_URL = 'https://pontowebintegracaoexterna.secullum.com.br/IntegracaoExterna';
 
 // Token Cache
 let cachedToken: string | null = null;

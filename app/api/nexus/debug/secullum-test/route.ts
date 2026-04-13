@@ -23,10 +23,10 @@ export async function GET() {
         const results: any = {};
         
         const urlsToTest = [
-            'https://pontoweb.secullum.com.br/api/IntegracaoExterna',
-            'https://pontowebapi.secullum.com.br/api/IntegracaoExterna',
-            'https://pontoweb07.secullum.com.br/api/IntegracaoExterna',
-            'https://pontowebapi07.secullum.com.br/api/IntegracaoExterna'
+            'https://pontowebintegracaoexterna.secullum.com.br/api/IntegracaoExterna',
+            'https://pontowebintegracaoexterna.secullum.com.br',
+            'https://pontowebintegracaoexterna.secullum.com.br/api',
+            'https://servicos.secullum.com.br/api/IntegracaoExterna'
         ];
 
         for (const baseUrl of urlsToTest) {
@@ -44,14 +44,8 @@ export async function GET() {
             }
         }
 
-        return NextResponse.json({
-            success: true,
-            results
-        });
+        return NextResponse.json({ success: true, results });
     } catch (e: any) {
-        return NextResponse.json({
-            success: false,
-            error: e.message
-        }, { status: 500 });
+        return NextResponse.json({ success: false, error: e.message }, { status: 500 });
     }
 }
