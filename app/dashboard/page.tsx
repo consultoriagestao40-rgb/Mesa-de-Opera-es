@@ -337,18 +337,18 @@ export default function NexusDashboard() {
                     </div>
                 </div>
 
-                <div className="nexus-card p-8 bg-slate-900 text-white overflow-hidden relative border-red-500/20">
+                <div className="nexus-card p-8 bg-red-50 text-red-900 overflow-hidden relative border-2 border-red-200 shadow-lg">
                     <div className={cn(
                         "relative z-10 flex flex-col justify-between h-full",
-                        stats.exceptions > 0 && "animate-nexus-pulse"
+                        (stats.exceptions || 0) > 0 && "animate-nexus-pulse"
                     )}>
                         <div>
-                            <p className="text-xs font-black uppercase tracking-[0.2em] text-red-400 mb-2">Monitor de Exceções</p>
-                            <h4 className="text-6xl font-black tracking-tighter">{stats.exceptions}</h4>
+                            <p className="text-xs font-black uppercase tracking-[0.2em] text-red-600 mb-2">Monitor de Exceções</p>
+                            <h4 className="text-6xl font-black tracking-tighter text-red-900">{stats.exceptions ?? 0}</h4>
                         </div>
-                        <div className="mt-4 flex items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/10 w-fit">
-                            <AlertTriangle className="text-red-400" size={18} />
-                            <span className="text-xs font-black uppercase tracking-widest">Pendências Críticas</span>
+                        <div className="mt-4 flex items-center gap-3 bg-red-100 p-3 rounded-2xl border border-red-200 w-fit">
+                            <AlertTriangle className="text-red-600" size={18} />
+                            <span className="text-xs font-black uppercase tracking-widest text-red-800">Pendências Críticas</span>
                         </div>
                     </div>
                 </div>

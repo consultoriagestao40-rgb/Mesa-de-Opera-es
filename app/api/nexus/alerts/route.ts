@@ -8,29 +8,18 @@ export async function GET(request: Request) {
         const dateParam = searchParams.get('date');
         
         const now = new Date();
-        // Base date for filtering
-        let targetDate = new Date(now.getTime() - 3 * 60 * 60 * 1000); // Default to Brazil Today
+        // Determine "Today" in Brazil (UTC-3)
+        const brazilNow = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+        const todayStr = format(brazilNow, 'yyyy-MM-dd');
         
-        if (dateParam) {
-            targetDate = new Date(dateParam + 'T12:00:00'); // Use mid-day to avoid TZ shifts
-        }
-
-        // [NUCLEAR FIX] If today, use a fuzzy 24h window to avoid TZ mismatches
-        const isToday = format(targetDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+        // Target date from param or default to today
+        const targetDateStr = dateParam || todayStr;
+        const normalizedTargetDate = new Date(targetDateStr + 'T00:00:00Z');
         
         const activeCycles = await prisma.alertCycle.findMany({
             where: {
                 status: { in: ['PENDENTE', 'EM_ALERTA', 'ENCERRADO'] },
-                ...(isToday ? {
-                    created_at: {
-                        gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
-                    }
-                } : {
-                    date: {
-                        gte: startOfDay(targetDate),
-                        lte: endOfDay(targetDate)
-                    }
-                })
+                date: normalizedTargetDate
             },
             include: {
                 collaborator: true
@@ -55,7 +44,7 @@ export async function GET(request: Request) {
             punches: await prisma.alertCycle.count({
                 where: {
                     status: 'CONCLUIDO',
-                    date: { gte: startOfDay(targetDate), lte: endOfDay(targetDate) }
+                    date: normalizedTargetDate
                 }
             }),
             exceptions: activeCycles.length,

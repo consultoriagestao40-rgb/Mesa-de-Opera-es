@@ -21,9 +21,12 @@ export async function processNexusCycle() {
     scheduleCache.clear();
 
     const now = new Date();
-    // Adjust to Brazil Time (UTC-3)
+    // Adjust to Brazil Time (UTC-3) to determine "Which day is it in Brazil?"
     const brazilNow = new Date(now.getTime() - 3 * 60 * 60 * 1000);
     const todayStr = format(brazilNow, 'yyyy-MM-dd');
+    
+    // Normalized "Today" for the database: The start of the Brazil day (00:00:00) 
+    const normalizedToday = new Date(todayStr + 'T00:00:00Z'); 
 
     try {
         // 1. Sync employees from Secullum (active/inactive)
@@ -135,7 +138,7 @@ export async function processNexusCycle() {
                 const cyclesToday = await prisma.alertCycle.findMany({
                     where: {
                         collaborator_id: collab.id,
-                        date: { gte: startOfDay(brazilNow), lte: endOfDay(brazilNow) }
+                        date: normalizedToday
                     }
                 });
 
@@ -160,11 +163,11 @@ export async function processNexusCycle() {
                         await prisma.alertCycle.create({
                             data: {
                                 collaborator_id: collab.id,
-                                date: startOfDay(brazilNow),
+                                date: normalizedToday,
                                 expected_time: (function() { 
                                     const [h, m] = events[0].time.split(':').map(Number);
-                                    const d = new Date(brazilNow);
-                                    d.setHours(h + 3, m, 0, 0); // Enforce UTC Target
+                                    const d = new Date(normalizedToday);
+                                    d.setUTCHours(h + 3, m, 0, 0); // Correctly mapped to UTC
                                     return d;
                                 })(),
                                 event_type: events[0].type,
@@ -226,16 +229,18 @@ async function checkEvent(
     collab: any,
     expectedTimeStr: string,
     type: 'ENTRADA' | 'SAIDA' | 'INTERVALO_SAIDA' | 'INTERVALO_RETORNO',
-    now: Date,
+    nowInBrazil: Date,
     punches: any[],
     secEmployeeId: string
 ) {
+    const todayStr = format(nowInBrazil, 'yyyy-MM-dd');
+    const normalizedToday = new Date(todayStr + 'T00:00:00Z');
     const [hours, minutes] = expectedTimeStr.split(':').map(Number);
     
-    // Construct expectedTime in UTC. 
+    // Construct expectedTime as UTC. 
     // Secullum says "08:00" (BRT), so we target "11:00" (UTC).
-    const expectedTime = new Date(now);
-    expectedTime.setHours(hours + 3, minutes, 0, 0);
+    const expectedTime = new Date(normalizedToday);
+    expectedTime.setUTCHours(hours + 3, minutes, 0, 0);
 
     // [v4] Check for punch detection FIRST, regardless of time
     const punchDetected = punches.some((p: any) => {
@@ -254,9 +259,9 @@ async function checkEvent(
             if (!val || typeof val !== 'string' || !val.includes(':')) return false;
 
             const [pHours, pMinutes] = val.split(':').map(Number);
-            const punchTime = new Date(expectedTime);
+            const punchTime = new Date(normalizedToday);
             // Again, Secullum HH:mm is BRT, so we map to UTC (+3h)
-            punchTime.setHours(pHours + 3, pMinutes, 0, 0);
+            punchTime.setUTCHours(pHours + 3, pMinutes, 0, 0);
 
             // Wide window for early/late punches: +/- 6 hours
             const isMatch = Math.abs(punchTime.getTime() - expectedTime.getTime()) < 6 * 60 * 60 * 1000;
@@ -268,7 +273,7 @@ async function checkEvent(
     let cycle = await prisma.alertCycle.findFirst({
         where: {
             collaborator_id: collab.id,
-            date: { gte: startOfDay(now), lte: endOfDay(now) },
+            date: normalizedToday,
             event_type: type,
             // When querying for existing, we must match the exactly constructed expectedTime
             expected_time: expectedTime
@@ -287,7 +292,7 @@ async function checkEvent(
             await prisma.alertCycle.create({
                 data: {
                     collaborator_id: collab.id,
-                    date: now,
+                    date: normalizedToday,
                     expected_time: expectedTime,
                     event_type: type,
                     status: 'CONCLUIDO',
@@ -300,14 +305,15 @@ async function checkEvent(
     }
 
     // [v4] If NO punch detected, check if we should create a PENDENTE or EM_ALERTA record
-    const diffMinutes = Math.floor((now.getTime() - expectedTime.getTime()) / 60000);
+    const realNow = new Date();
+    const diffMinutes = Math.floor((realNow.getTime() - expectedTime.getTime()) / 60000);
 
     if (!cycle) {
         // [v4] PROACTIVE: Create PENDENTE immediately for future events
         await prisma.alertCycle.create({
             data: {
                 collaborator_id: collab.id,
-                date: now,
+                date: normalizedToday,
                 expected_time: expectedTime,
                 event_type: type,
                 status: diffMinutes >= 5 ? 'EM_ALERTA' : 'PENDENTE',
