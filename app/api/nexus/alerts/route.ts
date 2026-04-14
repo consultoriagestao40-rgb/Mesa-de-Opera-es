@@ -50,7 +50,6 @@ export async function GET(request: Request) {
                 }
             }),
             exceptions: activeCycles.length,
-            // placeholders for management metrics not fully reachable by basic API, but keeping UI aligned
             solicitacoes: 0,
             assinaturas: 0
         };
