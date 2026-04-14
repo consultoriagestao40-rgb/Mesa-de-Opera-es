@@ -31,52 +31,33 @@ export async function GET(request: Request) {
             }
         });
 
-        // Summary Statistics for the specific day
-        const allActiveCollaborators = await prisma.collaborator.count({ where: { active: true } });
-        
-        // 1. Total Scheduled (Unique collaborators with any AlertCycle today)
-        const scheduledGroups = await prisma.alertCycle.groupBy({
-            by: ['collaborator_id'],
-            where: {
-                date: { gte: startOfDay(targetDate), lte: endOfDay(targetDate) }
-            }
-        });
-        const totalScheduled = scheduledGroups.length;
+        const collaborators = await prisma.collaborator.findMany({ where: { active: true } });
+        const allActiveCount = collaborators.length;
 
-        // 2. Total Present (Unique collaborators with at least one CONCLUIDO cycle today)
-        const presentGroups = await prisma.alertCycle.groupBy({
-            by: ['collaborator_id'],
-            where: {
-                status: 'CONCLUIDO',
-                date: { gte: startOfDay(targetDate), lte: endOfDay(targetDate) }
-            }
-        });
-        const totalPresent = presentGroups.length;
-
-        // 3. Total Punches (All CONCLUIDO cycles today)
-        const totalPunches = await prisma.alertCycle.count({
-            where: {
-                status: 'CONCLUIDO',
-                date: { gte: startOfDay(targetDate), lte: endOfDay(targetDate) }
-            }
-        });
-
-        // 4. Total Exceptions (All non-CONCLUIDO cycles in the current monitor list)
-        const totalExceptions = activeCycles.length;
-
-        // 5. Total Off Duty (Active collaborators not in today's schedule)
-        const totalOff = Math.max(0, allActiveCollaborators - totalScheduled);
+        const stats = {
+            totalActive: allActiveCount,
+            trabalhando: collaborators.filter(c => c.status === 'TRABALHANDO').length,
+            faltantes: collaborators.filter(c => c.status === 'FALTANTE').length,
+            folga: collaborators.filter(c => c.status === 'FOLGA').length,
+            ferias: collaborators.filter(c => c.status === 'FERIAS').length,
+            afastados: collaborators.filter(c => c.status === 'AFASTADO').length,
+            justificadas: collaborators.filter(c => c.status === 'JUSTIFICADO').length,
+            naEscala: collaborators.filter(c => c.status === 'NA_ESCALA').length,
+            punches: await prisma.alertCycle.count({
+                where: {
+                    status: 'CONCLUIDO',
+                    date: { gte: startOfDay(targetDate), lte: endOfDay(targetDate) }
+                }
+            }),
+            exceptions: activeCycles.length,
+            // placeholders for management metrics not fully reachable by basic API, but keeping UI aligned
+            solicitacoes: 0,
+            assinaturas: 0
+        };
 
         return NextResponse.json({ 
             cycles: activeCycles,
-            stats: {
-                totalActive: allActiveCollaborators,
-                scheduled: totalScheduled,
-                present: totalPresent,
-                punches: totalPunches,
-                exceptions: totalExceptions,
-                offDuty: totalOff
-            }
+            stats
         });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

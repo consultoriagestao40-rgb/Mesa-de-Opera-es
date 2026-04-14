@@ -23,7 +23,13 @@ import {
     UserCheck,
     UserMinus,
     CalendarCheck,
-    Coffee
+    Coffee,
+    UserX,
+    Plane,
+    Stethoscope,
+    FileText,
+    CheckCheck,
+    MapPin
 } from 'lucide-react';
 
 function cn(...inputs: any[]) {
@@ -33,13 +39,19 @@ function cn(...inputs: any[]) {
 export default function NexusDashboard() {
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [stats, setStats] = useState({ 
+    const [stats, setStats] = useState<any>({ 
         totalActive: 0, 
-        scheduled: 0, 
-        present: 0, 
-        punches: 0, 
-        exceptions: 0, 
-        offDuty: 0 
+        trabalhando: 0,
+        faltantes: 0,
+        folga: 0,
+        ferias: 0,
+        afastados: 0,
+        justificadas: 0,
+        naEscala: 0,
+        punches: 0,
+        exceptions: 0,
+        solicitacoes: 0,
+        assinaturas: 0
     });
     const [cycles, setCycles] = useState<any[]>([]);
     const [user, setUser] = useState<any>(null);
@@ -63,14 +75,7 @@ export default function NexusDashboard() {
             if (nexusRes.ok) {
                 const data = await nexusRes.json();
                 setCycles(data.cycles || []);
-                setStats(data.stats || { 
-                    totalActive: 0, 
-                    scheduled: 0, 
-                    present: 0, 
-                    punches: 0, 
-                    exceptions: 0, 
-                    offDuty: 0 
-                });
+                setStats(data.stats);
             }
         } catch (error) {
             console.error('Error fetching Nexus data:', error);
@@ -176,75 +181,174 @@ export default function NexusDashboard() {
                 </div>
             </div>
 
-            {/* Operational Matrix KPIs - 5 Cards Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
-                {/* 1. Na Escala */}
-                <div className="nexus-card p-6 group relative overflow-hidden bg-white">
+            {/* Management Matrix KPIs - Alignment with Secullum Daily Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                
+                {/* 1. Trabalhando */}
+                <div className="nexus-card p-6 group relative bg-emerald-50/20 border-emerald-100">
                     <div className="flex flex-col gap-4">
-                        <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 transition-all shadow-sm">
-                            <CalendarCheck size={20} />
-                        </div>
-                        <div>
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Na Escala Hoje</p>
-                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.scheduled}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 2. Em Folga */}
-                <div className="nexus-card p-6 group relative overflow-hidden bg-slate-50/30">
-                    <div className="flex flex-col gap-4">
-                        <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 transition-all shadow-sm">
-                            <Coffee size={20} />
-                        </div>
-                        <div>
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Em Folga</p>
-                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.offDuty}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 3. Pessoas Presentes */}
-                <div className="nexus-card p-6 group relative bg-emerald-50/20 border-emerald-100 overflow-hidden">
-                    <div className="flex flex-col gap-4">
-                        <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
+                        <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm transition-all group-hover:scale-110">
                             <UserCheck size={20} />
                         </div>
                         <div>
-                            <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest mb-1">Pessoas Presentes</p>
-                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.present}</p>
+                            <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest mb-1">Funcionários Trabalhando</p>
+                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.trabalhando}</p>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-emerald-500 transition-all duration-1000" 
+                                style={{ width: `${(stats.trabalhando / (stats.totalActive || 1)) * 100}%` }}
+                            />
                         </div>
                     </div>
                 </div>
 
-                {/* 4. Batidas Totais */}
-                <div className="nexus-card p-6 group relative overflow-hidden bg-blue-50/20">
+                {/* 2. Faltantes */}
+                <div className="nexus-card p-6 bg-white">
                     <div className="flex flex-col gap-4">
-                        <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
-                            <Activity size={20} />
+                        <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 shadow-sm border border-slate-100">
+                            <UserX size={20} />
                         </div>
                         <div>
-                            <p className="text-[9px] font-black text-blue-600/60 uppercase tracking-widest mb-1">Batidas Totais</p>
-                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.punches}</p>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Funcionários Faltantes</p>
+                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.faltantes}</p>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-indigo-200 transition-all duration-1000" 
+                                style={{ width: `${(stats.faltantes / (stats.totalActive || 1)) * 100}%` }}
+                            />
                         </div>
                     </div>
                 </div>
 
-                {/* 5. Exceções Ativas (Table Match) */}
-                <div className="nexus-card p-6 group border-red-100 overflow-hidden relative bg-red-50/10">
+                {/* 3. Em Folga */}
+                <div className="nexus-card p-6 bg-white">
+                    <div className="flex flex-col gap-4">
+                        <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-500 shadow-sm">
+                            <Coffee size={20} />
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Funcionários em Folga</p>
+                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.folga}</p>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-indigo-500 transition-all duration-1000" 
+                                style={{ width: `${(stats.folga / (stats.totalActive || 1)) * 100}%` }}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* 4. Férias */}
+                <div className="nexus-card p-6 bg-white">
+                    <div className="flex flex-col gap-4">
+                        <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 shadow-sm">
+                            <Plane size={20} />
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Funcionários de Férias</p>
+                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.ferias}</p>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-amber-400 transition-all duration-1000" 
+                                style={{ width: `${(stats.ferias / (stats.totalActive || 1)) * 100}%` }}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* 5. Afastados */}
+                <div className="nexus-card p-6 bg-white">
+                    <div className="flex flex-col gap-4">
+                        <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-500 shadow-sm">
+                            <Stethoscope size={20} />
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Funcionários Afastados</p>
+                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.afastados}</p>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-red-400 transition-all duration-1000" 
+                                style={{ width: `${(stats.afastados / (stats.totalActive || 1)) * 100}%` }}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* 6. Ausência Justificada / Na Escala */}
+                <div className="nexus-card p-6 bg-white">
+                    <div className="flex flex-col gap-4">
+                        <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 shadow-sm">
+                            <CheckCheck size={20} />
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ausência Justificada / Na Escala</p>
+                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.justificadas + stats.naEscala}</p>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div 
+                                className="h-full bg-blue-400 transition-all duration-1000" 
+                                style={{ width: `${((stats.justificadas + stats.naEscala) / (stats.totalActive || 1)) * 100}%` }}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* 7. Solicitações Pendentes */}
+                <div className="nexus-card p-6 bg-slate-50/50 border-dashed">
+                    <div className="flex flex-col gap-4">
+                        <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 shadow-sm">
+                            <FileText size={20} />
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Solicitações Pendentes</p>
+                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.solicitacoes}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 8. Assinaturas Pendentes */}
+                <div className="nexus-card p-6 bg-slate-50/50 border-dashed">
+                    <div className="flex flex-col gap-4">
+                        <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 shadow-sm">
+                            <Clock size={20} />
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Assinaturas Pendentes</p>
+                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.assinaturas}</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {/* Total Indicators */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="nexus-card p-8 bg-blue-600 text-white overflow-hidden relative">
+                    <Activity className="absolute -right-8 -bottom-8 w-48 h-48 text-white/5" />
+                    <div className="relative z-10">
+                        <p className="text-xs font-black uppercase tracking-[0.2em] text-white/60 mb-2">Volume de Batidas Hoje</p>
+                        <h4 className="text-6xl font-black tracking-tighter">{stats.punches}</h4>
+                        <p className="mt-4 text-sm font-bold text-white/80">Total de registros processados e validados pelo Nexus</p>
+                    </div>
+                </div>
+
+                <div className="nexus-card p-8 bg-slate-900 text-white overflow-hidden relative border-red-500/20">
                     <div className={cn(
-                        "flex flex-col gap-4",
+                        "relative z-10 flex flex-col justify-between h-full",
                         stats.exceptions > 0 && "animate-nexus-pulse"
                     )}>
-                        <div className={cn(
-                            "w-10 h-10 rounded-xl flex items-center justify-center shadow-sm",
-                            stats.exceptions > 0 ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-400"
-                        )}>
-                            <AlertTriangle size={20} />
-                        </div>
                         <div>
-                            <p className="text-[9px] font-black text-red-600/60 uppercase tracking-widest mb-1">Exceções Ativas</p>
-                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.exceptions}</p>
+                            <p className="text-xs font-black uppercase tracking-[0.2em] text-red-400 mb-2">Monitor de Exceções</p>
+                            <h4 className="text-6xl font-black tracking-tighter">{stats.exceptions}</h4>
+                        </div>
+                        <div className="mt-4 flex items-center gap-3 bg-white/5 p-3 rounded-2xl border border-white/10 w-fit">
+                            <AlertTriangle className="text-red-400" size={18} />
+                            <span className="text-xs font-black uppercase tracking-widest">Pendências Críticas</span>
                         </div>
                     </div>
                 </div>
@@ -257,7 +361,7 @@ export default function NexusDashboard() {
                         <Activity size={20} className="text-blue-600 animate-pulse" />
                         <h3 className="font-black text-slate-800 uppercase tracking-widest text-xs">Fila de Exceções de Ponto</h3>
                     </div>
-                    <span className="text-[10px] text-blue-600 font-black bg-blue-50 px-4 py-2 rounded-full uppercase tracking-widest">Nexus Engine v1.0</span>
+                    <span className="text-[10px] text-blue-600 font-black bg-blue-50 px-4 py-2 rounded-full uppercase tracking-widest">Nexus Engine v4.0</span>
                 </div>
 
                 <div className="overflow-x-auto">

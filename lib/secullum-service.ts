@@ -111,3 +111,10 @@ export async function getPunches(startDate: string, endDate: string) {
 export async function getScheduleByNumber(numero: number) {
     return secullumRequest('Horarios', { numero });
 }
+
+export async function getAfastamentos(startDate: string, endDate: string) {
+    return secullumRequest('FuncionariosAfastamentos', {
+        dataInicio: startDate,
+        dataFim: endDate
+    });
+}

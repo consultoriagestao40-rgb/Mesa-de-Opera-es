@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { getEmployees, getScheduleByNumber, getPunches } from '@/lib/secullum-service';
+import { getEmployees, getScheduleByNumber, getPunches, getAfastamentos } from '@/lib/secullum-service';
 import { sendWhatsAppMessage } from '@/lib/whatsapp-service';
 import { format, isAfter, isBefore, addMinutes, startOfDay, endOfDay } from 'date-fns';
 
@@ -28,45 +28,68 @@ export async function processNexusCycle() {
     try {
         // 1. Sync employees from Secullum (active/inactive)
         const secEmployees = await getEmployees();
-        console.log(`[Nexus Engine v3] ${secEmployees.length} employees from Secullum`);
+        console.log(`[Nexus Engine v4] ${secEmployees.length} employees from Secullum`);
         await syncCollaborators(secEmployees);
 
-        // 2. Get today's punches for everyone
-        const todayPunches = await getPunches(todayStr, todayStr);
-        console.log(`[Nexus Engine v3] ${todayPunches.length} punches today`);
+        // 2. Get today's data from Secullum
+        const [todayPunches, secAfastamentos] = await Promise.all([
+            getPunches(todayStr, todayStr),
+            getAfastamentos(todayStr, todayStr)
+        ]);
+        console.log(`[Nexus Engine v4] ${todayPunches.length} punches, ${secAfastamentos.length} afastamentos today`);
 
         // 3. Process each ACTIVE collaborator
         const collaborators = await prisma.collaborator.findMany({ where: { active: true } });
-        const dayOfWeek = brazilNow.getDay(); // 0=Sunday, 1=Monday...
+        const dayOfWeek = brazilNow.getDay(); 
 
         for (const collab of collaborators) {
             if (!collab.secullumId) continue;
 
-            // Find this employee's data from Secullum
+            // Check for Away/Vacation first
+            const afast = secAfastamentos.find((a: any) => 
+                a.NumeroPis?.toString() === collab.pis || a.Cpf?.toString() === collab.pis // basic match
+            );
+
+            let currentStatus = 'FOLGA'; // Default if no schedule
+            if (afast) {
+                currentStatus = afast.Motivo?.toUpperCase().includes('FERIAS') ? 'FERIAS' : 'AFASTADO';
+            }
+
             const secEmp = secEmployees.find((e: any) => e.Id?.toString() === collab.secullumId);
-            if (!secEmp?.HorarioId || !secEmp?.Horario?.Numero) continue;
+            if (!secEmp?.HorarioId || !secEmp?.Horario?.Numero) {
+                // Not on schedule at all? Mark as Folga if not on leave
+                if (!afast) currentStatus = 'FOLGA';
+                await prisma.collaborator.update({
+                    where: { id: collab.id },
+                    data: { status: currentStatus }
+                });
+                continue;
+            }
 
             const scheduleNumero = secEmp.Horario.Numero as number;
-
-            // Get schedule with Dias (use cache to avoid repeated calls)
             let schedule = scheduleCache.get(scheduleNumero);
             if (!schedule) {
                 try {
                     const result = await getScheduleByNumber(scheduleNumero);
-                    // API may return an array
                     schedule = Array.isArray(result) ? result[0] : result;
                     scheduleCache.set(scheduleNumero, schedule);
                 } catch {
-                    continue; // skip if API fails for this schedule
+                    continue; 
                 }
             }
 
-            if (!schedule?.Dias) continue;
+            const todaySchedule = schedule?.Dias?.find((d: any) => d.DiaSemana === dayOfWeek);
+            if (!todaySchedule) {
+                if (!afast) currentStatus = 'FOLGA';
+                await prisma.collaborator.update({
+                    where: { id: collab.id },
+                    data: { status: currentStatus }
+                });
+                continue;
+            }
 
-            const todaySchedule = schedule.Dias.find((d: any) => d.DiaSemana === dayOfWeek);
-            if (!todaySchedule) continue;
-
-            // Monitor all 4 event types
+            // If we have a schedule, check for presence/absence
+            // We'll update the status after processing events
             const events: Array<{ time: string; type: 'ENTRADA' | 'SAIDA' | 'INTERVALO_SAIDA' | 'INTERVALO_RETORNO' }> = [];
 
             if (todaySchedule.Entrada1 && todaySchedule.Entrada1 !== '00:00')
@@ -81,11 +104,34 @@ export async function processNexusCycle() {
             for (const event of events) {
                 await checkEvent(collab, event.time, event.type, brazilNow, todayPunches, collab.secullumId);
             }
+
+            // [NEW v4] RE-EVALUATE STATUS BASED ON CYCLES
+            const cyclesToday = await prisma.alertCycle.findMany({
+                where: {
+                    collaborator_id: collab.id,
+                    date: { gte: startOfDay(brazilNow), lte: endOfDay(brazilNow) }
+                }
+            });
+
+            if (afast) {
+                // Done (already set above)
+            } else if (cyclesToday.some(c => c.status === 'CONCLUIDO')) {
+                currentStatus = 'TRABALHANDO';
+            } else if (cyclesToday.some(c => c.status === 'EM_ALERTA' || c.status === 'ENCERRADO')) {
+                currentStatus = 'FALTANTE';
+            } else {
+                currentStatus = 'NA_ESCALA';
+            }
+
+            await prisma.collaborator.update({
+                where: { id: collab.id },
+                data: { status: currentStatus }
+            });
         }
 
         return { success: true, timestamp: brazilNow };
     } catch (error: any) {
-        console.error('[Nexus Engine v3] Critical failure:', error.message);
+        console.error('[Nexus Engine v4] Critical failure:', error.message);
         throw error;
     }
 }
@@ -122,7 +168,7 @@ export async function syncCollaborators(secEmployees: any[]) {
             }
         });
     }
-    console.log('[Nexus Engine v3] Collaborator sync complete.');
+    console.log('[Nexus Engine v4] Collaborator sync complete.');
 }
 
 async function checkEvent(
@@ -140,10 +186,7 @@ async function checkEvent(
     const expectedTime = new Date(now);
     expectedTime.setHours(hours + 3, minutes, 0, 0);
 
-    // Only monitor events that are in the past (past expected time)
-    if (now < expectedTime) return;
-
-    // Check if there's a punch in the Secullum data
+    // [v4] Check for punch detection FIRST, regardless of time
     const punchDetected = punches.some((p: any) => {
         const empMatch = p.FuncionarioId?.toString() === secEmployeeId ||
                          p.funcionarioId?.toString() === secEmployeeId;
@@ -164,9 +207,8 @@ async function checkEvent(
             // Again, Secullum HH:mm is BRT, so we map to UTC (+3h)
             punchTime.setHours(pHours + 3, pMinutes, 0, 0);
 
-            const isMatch = isAfter(punchTime, addMinutes(expectedTime, -60)) &&
-                           isBefore(punchTime, addMinutes(expectedTime, 360));
-
+            // Wide window for early/late punches: +/- 6 hours
+            const isMatch = Math.abs(punchTime.getTime() - expectedTime.getTime()) < 6 * 60 * 60 * 1000;
             return isMatch;
         });
     });
@@ -182,14 +224,13 @@ async function checkEvent(
         }
     });
 
-    // If punch detected, close any open cycle (including timed-out ones)
+    // If punch detected, close any open cycle (including future ones)
     if (punchDetected) {
         if (cycle && ['PENDENTE', 'EM_ALERTA', 'ENCERRADO'].includes(cycle.status)) {
             await prisma.alertCycle.update({
                 where: { id: cycle.id },
                 data: { status: 'CONCLUIDO', completed_at: new Date() }
             });
-            console.log(`[Nexus] ✅ Reconciliado (Retroativo): ${collab.name} - ${type}`);
         } else if (!cycle) {
             // Se ainda não existia o ciclo, mas já bateu, criamos concluído para o dashboard somar
             await prisma.alertCycle.create({
@@ -203,19 +244,31 @@ async function checkEvent(
                     current_step: 0
                 }
             });
-            console.log(`[Nexus] ✅ Presença Confirmada: ${collab.name} - ${type}`);
         }
         return;
     }
 
+    // [v4] If NO punch detected, check if we should create a PENDENTE or EM_ALERTA record
     const diffMinutes = Math.floor((now.getTime() - expectedTime.getTime()) / 60000);
 
-    // Only create/escalate if past tolerance (5 min)
-    if (diffMinutes < 5) return;
+    if (!cycle) {
+        // [v4] PROACTIVE: Create PENDENTE immediately for future events
+        await prisma.alertCycle.create({
+            data: {
+                collaborator_id: collab.id,
+                date: now,
+                expected_time: expectedTime,
+                event_type: type,
+                status: diffMinutes >= 5 ? 'EM_ALERTA' : 'PENDENTE',
+                current_step: 0
+            }
+        });
+        return;
+    }
 
     // Auto-close after 90 minutes of no punch
     if (diffMinutes > 90) {
-        if (cycle && cycle.status !== 'ENCERRADO') {
+        if (cycle.status !== 'ENCERRADO' && cycle.status !== 'CONCLUIDO') {
             await prisma.alertCycle.update({
                 where: { id: cycle.id },
                 data: { status: 'ENCERRADO', updated_at: new Date() }
@@ -224,30 +277,24 @@ async function checkEvent(
         return;
     }
 
-    // Create cycle if doesn't exist
-    if (!cycle) {
-        cycle = await prisma.alertCycle.create({
-            data: {
-                collaborator_id: collab.id,
-                date: now,
-                expected_time: expectedTime,
-                event_type: type,
-                status: 'EM_ALERTA',
-                current_step: 0
-            }
-        });
-    }
+    // Escalation logic for active alerts
+    if (diffMinutes >= 5 && (cycle.status === 'PENDENTE' || cycle.status === 'EM_ALERTA')) {
+        if (cycle.status === 'PENDENTE') {
+            await prisma.alertCycle.update({
+                where: { id: cycle.id },
+                data: { status: 'EM_ALERTA' }
+            });
+        }
 
-    if (['CONCLUIDO', 'CANCELADO', 'ENCERRADO'].includes(cycle.status)) return;
+        // Escalation: 5min → Step 1, 20min → Step 2, 40min → Step 3
+        let targetStep = 0;
+        if (diffMinutes >= 40) targetStep = 3;
+        else if (diffMinutes >= 20) targetStep = 2;
+        else if (diffMinutes >= 5) targetStep = 1;
 
-    // Escalation: 5min → Step 1, 20min → Step 2, 40min → Step 3
-    let targetStep = 0;
-    if (diffMinutes >= 40) targetStep = 3;
-    else if (diffMinutes >= 20) targetStep = 2;
-    else if (diffMinutes >= 5) targetStep = 1;
-
-    if (targetStep > cycle.current_step) {
-        await triggerNexusAlert(collab, type, expectedTimeStr, targetStep, cycle.id);
+        if (targetStep > cycle.current_step) {
+            await triggerNexusAlert(collab, type, expectedTimeStr, targetStep, cycle.id);
+        }
     }
 }
 

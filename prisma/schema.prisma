@@ -27,6 +27,7 @@ model Collaborator {
   secullumId  String?  @unique
   posto       String?  // Local de Trabalho / Posto
   departamento String? // Departamento / Shopping vinculado
+  status      String   @default("DESCONHECIDO") // Trabalhando, Folga, Ferias, Afastado, Justificado, etc.
   active      Boolean  @default(true)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
