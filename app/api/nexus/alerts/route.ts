@@ -15,13 +15,22 @@ export async function GET(request: Request) {
             targetDate = new Date(dateParam + 'T12:00:00'); // Use mid-day to avoid TZ shifts
         }
 
+        // [NUCLEAR FIX] If today, use a fuzzy 24h window to avoid TZ mismatches
+        const isToday = format(targetDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+        
         const activeCycles = await prisma.alertCycle.findMany({
             where: {
-                status: { in: ['PENDENTE', 'EM_ALERTA', 'ENCERRADO'] }, // Ensuring visibility
-                date: {
-                    gte: startOfDay(targetDate),
-                    lte: endOfDay(targetDate)
-                }
+                status: { in: ['PENDENTE', 'EM_ALERTA', 'ENCERRADO'] },
+                ...(isToday ? {
+                    created_at: {
+                        gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
+                    }
+                } : {
+                    date: {
+                        gte: startOfDay(targetDate),
+                        lte: endOfDay(targetDate)
+                    }
+                })
             },
             include: {
                 collaborator: true
