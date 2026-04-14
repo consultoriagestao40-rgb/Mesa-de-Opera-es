@@ -91,51 +91,47 @@ export async function processNexusCycle() {
                 });
             }
 
-            // --- 3. ESCALA E MONITORAMENTO ---
-            if (!secEmp?.HorarioId || !secEmp?.Horario?.Numero) {
-                if (!isWorkingNow) {
-                    await prisma.collaborator.update({
-                        where: { id: collab.id },
-                        data: { status: 'FOLGA' }
-                    });
-                }
-                continue;
-            }
-
-            const scheduleNumero = secEmp.Horario.Numero as number;
-            let schedule = scheduleCache.get(scheduleNumero);
-            if (!schedule) {
-                try {
-                    const result = await getScheduleByNumber(scheduleNumero);
-                    schedule = Array.isArray(result) ? result[0] : result;
-                    scheduleCache.set(scheduleNumero, schedule);
-                } catch { continue; }
-            }
-
-            const todaySchedule = schedule?.Dias?.find((d: any) => d.DiaSemana === dayOfWeek);
-            if (!todaySchedule) {
-                if (!isWorkingNow) {
-                    await prisma.collaborator.update({
-                        where: { id: collab.id },
-                        data: { status: 'FOLGA' }
-                    });
-                }
-                continue;
-            }
-
-            // Process actual events for cycles
-            const events: Array<{ time: string; type: 'ENTRADA' | 'SAIDA' | 'INTERVALO_SAIDA' | 'INTERVALO_RETORNO' }> = [];
-            if (todaySchedule.Entrada1 && todaySchedule.Entrada1 !== '00:00') events.push({ time: todaySchedule.Entrada1, type: 'ENTRADA' });
-            if (todaySchedule.Saida1 && todaySchedule.Saida1 !== '00:00') events.push({ time: todaySchedule.Saida1, type: 'INTERVALO_SAIDA' });
-            if (todaySchedule.Entrada2 && todaySchedule.Entrada2 !== '00:00') events.push({ time: todaySchedule.Entrada2, type: 'INTERVALO_RETORNO' });
-            if (todaySchedule.Saida2 && todaySchedule.Saida2 !== '00:00') events.push({ time: todaySchedule.Saida2, type: 'SAIDA' });
-
-            for (const event of events) {
-                await checkEvent(collab, event.time, event.type, brazilNow, todayPunches, collab.secullumId);
-            }
-
-            // --- 4. DETERMINAR FALTANTE vs NA ESCALA vs FOLGA ---
+            // --- 3. DETERMINAR FALTANTE vs NA ESCALA vs FOLGA ---
             if (!isWorkingNow) {
+                const scheduleNumero = secEmp?.Horario?.Numero as number;
+                let hasScheduleToday = false;
+                let events: Array<{ time: string; type: 'ENTRADA' | 'SAIDA' | 'INTERVALO_SAIDA' | 'INTERVALO_RETORNO' }> = [];
+
+                if (scheduleNumero) {
+                    let schedule = scheduleCache.get(scheduleNumero);
+                    if (!schedule) {
+                        try {
+                            const result = await getScheduleByNumber(scheduleNumero);
+                            schedule = Array.isArray(result) ? result[0] : result;
+                            scheduleCache.set(scheduleNumero, schedule);
+                        } catch { }
+                    }
+
+                    const todaySchedule = schedule?.Dias?.find((d: any) => d.DiaSemana === dayOfWeek);
+                    if (todaySchedule && (todaySchedule.Entrada1 !== '00:00' || todaySchedule.Saida1 !== '00:00')) {
+                        hasScheduleToday = true;
+                        if (todaySchedule.Entrada1 && todaySchedule.Entrada1 !== '00:00') events.push({ time: todaySchedule.Entrada1, type: 'ENTRADA' });
+                        if (todaySchedule.Saida1 && todaySchedule.Saida1 !== '00:00') events.push({ time: todaySchedule.Saida1, type: 'INTERVALO_SAIDA' });
+                        if (todaySchedule.Entrada2 && todaySchedule.Entrada2 !== '00:00') events.push({ time: todaySchedule.Entrada2, type: 'INTERVALO_RETORNO' });
+                        if (todaySchedule.Saida2 && todaySchedule.Saida2 !== '00:00') events.push({ time: todaySchedule.Saida2, type: 'SAIDA' });
+                    }
+                }
+
+                // If no schedule for today -> FOLGA
+                if (!hasScheduleToday) {
+                    await prisma.collaborator.update({
+                        where: { id: collab.id },
+                        data: { status: 'FOLGA' }
+                    });
+                    continue;
+                }
+
+                // Process checkEvent for anyone with a schedule
+                for (const event of events) {
+                    await checkEvent(collab, event.time, event.type, brazilNow, todayPunches, collab.secullumId);
+                }
+
+                // Final status check based on cycles
                 const cyclesToday = await prisma.alertCycle.findMany({
                     where: {
                         collaborator_id: collab.id,
@@ -143,18 +139,35 @@ export async function processNexusCycle() {
                     }
                 });
 
-                // Se houver batidas mas o número é par (ex: 2 ou 4 batidas), ele já terminou o turno ou o dia.
-                if (personPunches.length > 0 && personPunches.length % 2 === 0) {
-                    // Se o último evento do dia para ele já passou, ele está em FOLGA/PÓS-TURNO
+                if (personPunches.length > 0 && realPunches.length % 2 === 0) {
                     await prisma.collaborator.update({
                         where: { id: collab.id },
-                        data: { status: 'FOLGA' } // Ou um status de 'CONCLUIDO'
+                        data: { status: 'FOLGA' } 
                     });
                 } else if (cyclesToday.some(c => c.status === 'EM_ALERTA' || c.status === 'ENCERRADO')) {
                     await prisma.collaborator.update({
                         where: { id: collab.id },
                         data: { status: 'FALTANTE' }
                     });
+                    // FORCE presence in table: if no active cycle exists, create one in EM_ALERTA
+                    const activeCycle = cyclesToday.find(c => c.status === 'EM_ALERTA' || c.status === 'PENDENTE');
+                    if (!activeCycle && events.length > 0) {
+                        await prisma.alertCycle.create({
+                            data: {
+                                collaborator_id: collab.id,
+                                date: startOfDay(brazilNow),
+                                expected_time: (function() { 
+                                    const [h, m] = events[0].time.split(':').map(Number);
+                                    const d = new Date(brazilNow);
+                                    d.setHours(h + 3, m, 0, 0); // UTC
+                                    return d;
+                                })(),
+                                event_type: events[0].type,
+                                status: 'EM_ALERTA',
+                                current_step: 0
+                            }
+                        });
+                    }
                 } else {
                     await prisma.collaborator.update({
                         where: { id: collab.id },
@@ -179,7 +192,7 @@ export async function syncCollaborators(secEmployees: any[]) {
 
         if (!secId) continue;
 
-        const isActive = !emp.Demissao && emp.Invisivel !== true;
+        const isActive = !emp.Demissao;
         const finalPis = (emp.NumeroPis || emp.numeroPis || emp.Pis || emp.pis || '').toString() || null;
 
         await prisma.collaborator.upsert({
