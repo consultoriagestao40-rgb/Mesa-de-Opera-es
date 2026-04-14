@@ -18,7 +18,7 @@ export async function GET(request: Request) {
         
         const activeCycles = await prisma.alertCycle.findMany({
             where: {
-                status: { in: ['PENDENTE', 'EM_ALERTA', 'ENCERRADO'] },
+                status: 'EM_ALERTA',
                 date: normalizedTargetDate
             },
             include: {
