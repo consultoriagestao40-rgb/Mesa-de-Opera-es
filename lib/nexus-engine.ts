@@ -43,7 +43,8 @@ export async function processNexusCycle() {
 
         // 3. Process each ACTIVE collaborator
         const collaborators = await prisma.collaborator.findMany({ where: { active: true } });
-        const dayOfWeek = brazilNow.getDay(); 
+        // Correct Mapping: JS (0=Sun, 1=Mon, 2=Tue) -> Secullum (0=Mon, 1=Tue...6=Sun)
+        const dayOfWeek = (brazilNow.getDay() + 6) % 7; 
 
         for (const collab of collaborators) {
             if (!collab.secullumId) continue;
@@ -147,44 +148,10 @@ export async function processNexusCycle() {
                         where: { id: collab.id },
                         data: { status: 'FOLGA' } 
                     });
-                } else if (cyclesToday.some(c => c.status === 'EM_ALERTA' || c.status === 'ENCERRADO' || c.status === 'PENDENTE')) {
                     await prisma.collaborator.update({
                         where: { id: collab.id },
                         data: { status: 'FALTANTE' }
                     });
-                    // FORCE presence in table: ensure at least one cycle is in EM_ALERTA
-                    const targetCycle = cyclesToday.find(c => ['PENDENTE', 'EM_ALERTA', 'ENCERRADO'].includes(c.status));
-                    if (targetCycle) {
-                         if (targetCycle.status !== 'EM_ALERTA' && targetCycle.status !== 'ENCERRADO') {
-                            await prisma.alertCycle.update({
-                                where: { id: targetCycle.id },
-                                data: { status: 'EM_ALERTA' }
-                            });
-                         }
-                    } else if (events.length > 0) {
-                        // Create a cycle if missing to ensure synchronization
-                        await prisma.alertCycle.create({
-                            data: {
-                                collaborator_id: collab.id,
-                                date: normalizedToday,
-                                expected_time: (function() { 
-                                    const [h, m] = events[0].time.split(':').map(Number);
-                                    const d = new Date(normalizedToday);
-                                    d.setUTCHours(h + 3, m, 0, 0); 
-                                    return d;
-                                })(),
-                                event_type: events[0].type,
-                                status: 'EM_ALERTA',
-                                current_step: 0
-                            }
-                        });
-                    }
-                } else {
-                    await prisma.collaborator.update({
-                        where: { id: collab.id },
-                        data: { status: 'NA_ESCALA' }
-                    });
-                }
             }
         }
 
