@@ -46,15 +46,17 @@ export async function processNexusCycle() {
             if (!collab.secullumId) continue;
 
             const secEmp = secEmployees.find((e: any) => e.Id?.toString() === collab.secullumId);
+            const cleanCollabPis = collab.pis?.replace(/\D/g, '') || '';
+
             const afast = secAfastamentos.find((a: any) => {
-                const aPis = (a.NumeroPis || a.numeroPis || '').toString();
-                const aCpf = (a.Cpf || a.cpf || '').toString();
-                return (aPis && aPis === collab.pis) || (aCpf && aCpf === collab.pis);
+                const aPis = (a.NumeroPis || a.numeroPis || '').toString().replace(/\D/g, '');
+                const aCpf = (a.Cpf || a.cpf || '').toString().replace(/\D/g, '');
+                return (cleanCollabPis && (aPis === cleanCollabPis || aCpf === cleanCollabPis));
             });
 
             // --- 1. AFASTAMENTO / FÉRIAS ---
             if (afast) {
-                const motivo = (afast.Motivo || afast.motivo || '').toUpperCase();
+                const motivo = (afast.Motivo || afast.motivo || afast.JustificativaNome || afast.justificativaNome || '').toUpperCase();
                 const isFerias = motivo.includes('FERIAS');
                 await prisma.collaborator.update({
                     where: { id: collab.id },
@@ -151,9 +153,6 @@ export async function processNexusCycle() {
     }
 }
 
-/**
- * Sync collaborators from Secullum, marking dismissed/invisible as inactive.
- */
 export async function syncCollaborators(secEmployees: any[]) {
     for (const empRaw of secEmployees) {
         const emp = empRaw as any;
@@ -163,20 +162,21 @@ export async function syncCollaborators(secEmployees: any[]) {
         if (!secId) continue;
 
         const isActive = !emp.Demissao && emp.Invisivel !== true;
+        const finalPis = (emp.NumeroPis || emp.numeroPis || emp.Pis || emp.pis || '').toString() || null;
 
         await prisma.collaborator.upsert({
             where: { secullumId: secId },
             update: {
                 name: nomeFinal,
                 active: isActive,
-                pis: (emp.Pis || emp.pis || '').toString() || null,
+                pis: finalPis,
                 posto: emp.Empresa?.Nome || emp.empresaNome || 'Importado Secullum',
                 departamento: emp.Departamento?.Descricao || null
             },
             create: {
                 name: nomeFinal,
                 secullumId: secId,
-                pis: (emp.Pis || emp.pis || '').toString() || null,
+                pis: finalPis,
                 active: isActive,
                 posto: emp.Empresa?.Nome || emp.empresaNome || 'Importado Secullum',
                 departamento: emp.Departamento?.Descricao || null
