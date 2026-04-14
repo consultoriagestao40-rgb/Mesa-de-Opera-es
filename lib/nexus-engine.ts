@@ -48,15 +48,24 @@ export async function processNexusCycle() {
             const secEmp = secEmployees.find((e: any) => e.Id?.toString() === collab.secullumId);
             const cleanCollabPis = collab.pis?.replace(/\D/g, '') || '';
 
-            const afast = secAfastamentos.find((a: any) => {
+            // --- 1. AFASTAMENTO / FÉRIAS ---
+            // Try matching by PIS/CPF
+            let afast = secAfastamentos.find((a: any) => {
                 const aPis = (a.NumeroPis || a.numeroPis || '').toString().replace(/\D/g, '');
                 const aCpf = (a.Cpf || a.cpf || '').toString().replace(/\D/g, '');
                 return (cleanCollabPis && (aPis === cleanCollabPis || aCpf === cleanCollabPis));
             });
 
-            // --- 1. AFASTAMENTO / FÉRIAS ---
-            if (afast) {
-                const motivo = (afast.Motivo || afast.motivo || afast.JustificativaNome || afast.justificativaNome || '').toUpperCase();
+            // Try matching by punch-text (Secullum specific behavior)
+            const personPunches = todayPunches.filter((p: any) => 
+                p.FuncionarioId?.toString() === collab.secullumId || 
+                p.funcionarioId?.toString() === collab.secullumId
+            );
+            const punchText = (personPunches[0]?.Entrada1 || '').toString();
+            const isTextLeave = punchText && !/^\d{2}:\d{2}$/.test(punchText);
+
+            if (afast || isTextLeave) {
+                const motivo = (afast?.Motivo || afast?.motivo || afast?.JustificativaNome || punchText || '').toUpperCase();
                 const isFerias = motivo.includes('FERIAS');
                 await prisma.collaborator.update({
                     where: { id: collab.id },
@@ -65,23 +74,26 @@ export async function processNexusCycle() {
                 continue;
             }
 
-            // --- 2. TRABALHANDO (Qualquer batida = Trabalhando) ---
-            const hasPunchRaw = todayPunches.some((p: any) => 
-                p.FuncionarioId?.toString() === collab.secullumId || 
-                p.funcionarioId?.toString() === collab.secullumId
-            );
+            // Secullum Dashboard "Trabalhando" logic
+            // We ignore punches that are actually leave text (e.g. 'MATERN.', 'FERIAS')
+            const realPunches = personPunches.filter((p: any) => {
+                const timeStr = p.Entrada1 || '';
+                return /^\d{2}:\d{2}$/.test(timeStr); // must match HH:mm
+            });
 
-            if (hasPunchRaw) {
+            // Secullum Dashboard "Trabalhando" = Possui número ÍMPAR de batidas REAIS
+            const isWorkingNow = realPunches.length > 0 && realPunches.length % 2 !== 0;
+
+            if (isWorkingNow) {
                 await prisma.collaborator.update({
                     where: { id: collab.id },
                     data: { status: 'TRABALHANDO' }
                 });
-                // We still process cycles to reconcile punches, but the state is Working
             }
 
             // --- 3. ESCALA E MONITORAMENTO ---
             if (!secEmp?.HorarioId || !secEmp?.Horario?.Numero) {
-                if (!hasPunchRaw) {
+                if (!isWorkingNow) {
                     await prisma.collaborator.update({
                         where: { id: collab.id },
                         data: { status: 'FOLGA' }
@@ -102,7 +114,7 @@ export async function processNexusCycle() {
 
             const todaySchedule = schedule?.Dias?.find((d: any) => d.DiaSemana === dayOfWeek);
             if (!todaySchedule) {
-                if (!hasPunchRaw) {
+                if (!isWorkingNow) {
                     await prisma.collaborator.update({
                         where: { id: collab.id },
                         data: { status: 'FOLGA' }
@@ -122,8 +134,8 @@ export async function processNexusCycle() {
                 await checkEvent(collab, event.time, event.type, brazilNow, todayPunches, collab.secullumId);
             }
 
-            // --- 4. DETERMINAR FALTANTE vs NA ESCALA ---
-            if (!hasPunchRaw) {
+            // --- 4. DETERMINAR FALTANTE vs NA ESCALA vs FOLGA ---
+            if (!isWorkingNow) {
                 const cyclesToday = await prisma.alertCycle.findMany({
                     where: {
                         collaborator_id: collab.id,
@@ -131,8 +143,14 @@ export async function processNexusCycle() {
                     }
                 });
 
-                // Se houver qualquer ciclo 'EM_ALERTA' ou 'ENCERRADO', é Faltante
-                if (cyclesToday.some(c => c.status === 'EM_ALERTA' || c.status === 'ENCERRADO')) {
+                // Se houver batidas mas o número é par (ex: 2 ou 4 batidas), ele já terminou o turno ou o dia.
+                if (personPunches.length > 0 && personPunches.length % 2 === 0) {
+                    // Se o último evento do dia para ele já passou, ele está em FOLGA/PÓS-TURNO
+                    await prisma.collaborator.update({
+                        where: { id: collab.id },
+                        data: { status: 'FOLGA' } // Ou um status de 'CONCLUIDO'
+                    });
+                } else if (cyclesToday.some(c => c.status === 'EM_ALERTA' || c.status === 'ENCERRADO')) {
                     await prisma.collaborator.update({
                         where: { id: collab.id },
                         data: { status: 'FALTANTE' }
