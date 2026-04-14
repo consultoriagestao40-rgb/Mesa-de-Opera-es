@@ -148,10 +148,17 @@ export async function processNexusCycle() {
                         where: { id: collab.id },
                         data: { status: 'FOLGA' } 
                     });
+                } else if (cyclesToday.some(c => c.status === 'EM_ALERTA' || c.status === 'ENCERRADO')) {
                     await prisma.collaborator.update({
                         where: { id: collab.id },
                         data: { status: 'FALTANTE' }
                     });
+                } else {
+                    await prisma.collaborator.update({
+                        where: { id: collab.id },
+                        data: { status: 'NA_ESCALA' }
+                    });
+                }
             }
         }
 
