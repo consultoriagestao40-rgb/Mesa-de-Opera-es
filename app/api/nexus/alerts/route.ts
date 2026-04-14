@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
         const activeCycles = await prisma.alertCycle.findMany({
             where: {
-                status: { in: ['PENDENTE', 'EM_ALERTA', 'ENCERRADO'] }, // Focus ONLY on what needs action or expired
+                status: { in: ['PENDENTE', 'EM_ALERTA', 'ENCERRADO', 'FALTANTE'] }, // Ensuring visibility
                 date: {
                     gte: startOfDay(targetDate),
                     lte: endOfDay(targetDate)

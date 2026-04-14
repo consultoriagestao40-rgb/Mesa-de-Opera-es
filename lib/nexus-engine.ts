@@ -144,14 +144,19 @@ export async function processNexusCycle() {
                         where: { id: collab.id },
                         data: { status: 'FOLGA' } 
                     });
-                } else if (cyclesToday.some(c => c.status === 'EM_ALERTA' || c.status === 'ENCERRADO')) {
+                } else if (cyclesToday.some(c => c.status === 'EM_ALERTA' || c.status === 'ENCERRADO' || c.status === 'PENDENTE')) {
                     await prisma.collaborator.update({
                         where: { id: collab.id },
                         data: { status: 'FALTANTE' }
                     });
-                    // FORCE presence in table: if no active cycle exists, create one in EM_ALERTA
-                    const activeCycle = cyclesToday.find(c => c.status === 'EM_ALERTA' || c.status === 'PENDENTE');
-                    if (!activeCycle && events.length > 0) {
+                    // FORCE presence in table: ensure at least one cycle is in EM_ALERTA
+                    const targetCycle = cyclesToday.find(c => ['PENDENTE', 'EM_ALERTA', 'ENCERRADO'].includes(c.status));
+                    if (targetCycle && targetCycle.status === 'PENDENTE') {
+                         await prisma.alertCycle.update({
+                             where: { id: targetCycle.id },
+                             data: { status: 'EM_ALERTA' }
+                         });
+                    } else if (!targetCycle && events.length > 0) {
                         await prisma.alertCycle.create({
                             data: {
                                 collaborator_id: collab.id,
@@ -159,7 +164,7 @@ export async function processNexusCycle() {
                                 expected_time: (function() { 
                                     const [h, m] = events[0].time.split(':').map(Number);
                                     const d = new Date(brazilNow);
-                                    d.setHours(h + 3, m, 0, 0); // UTC
+                                    d.setHours(h + 3, m, 0, 0); // Enforce UTC Target
                                     return d;
                                 })(),
                                 event_type: events[0].type,
