@@ -46,13 +46,16 @@ export async function processNexusCycle() {
             if (!collab.secullumId) continue;
 
             // Check for Away/Vacation first
-            const afast = secAfastamentos.find((a: any) => 
-                a.NumeroPis?.toString() === collab.pis || a.Cpf?.toString() === collab.pis // basic match
-            );
+            const afast = secAfastamentos.find((a: any) => {
+                const aPis = (a.NumeroPis || a.numeroPis || '').toString();
+                const aCpf = (a.Cpf || a.cpf || '').toString();
+                return (aPis && aPis === collab.pis) || (aCpf && aCpf === collab.pis);
+            });
 
             let currentStatus = 'FOLGA'; // Default if no schedule
             if (afast) {
-                currentStatus = afast.Motivo?.toUpperCase().includes('FERIAS') ? 'FERIAS' : 'AFASTADO';
+                const motivo = (afast.Motivo || afast.motivo || '').toUpperCase();
+                currentStatus = motivo.includes('FERIAS') ? 'FERIAS' : 'AFASTADO';
             }
 
             const secEmp = secEmployees.find((e: any) => e.Id?.toString() === collab.secullumId);
