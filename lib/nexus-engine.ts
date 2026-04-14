@@ -372,6 +372,21 @@ async function triggerNexusAlert(
         `❌ *Batida não registrada no Secullum*\n\n` +
         `Verificar presença no local imediatamente! ⏱️`;
 
+    // [v4.2] FILTER: Only send WhatsApp for FIRST PUNCH (ENTRADA)
+    if (type !== 'ENTRADA') {
+        console.log(`[Nexus] ⏭️ Alerta de ${type} ignorado (Filtro: Apenas Primeira Batida habilitado)`);
+        // We still update the DB cycle so it shows as 'EM_ALERTA' in the table, but no WhatsApp sent.
+        await prisma.alertCycle.update({
+            where: { id: cycleId },
+            data: {
+                current_step: step,
+                last_alert_at: new Date(),
+                status: 'EM_ALERTA'
+            }
+        });
+        return;
+    }
+
     const success = await sendWhatsAppMessage('', message);
 
     if (success) {
