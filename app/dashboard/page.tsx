@@ -391,22 +391,22 @@ export default function NexusDashboard() {
                                         <td className="px-10 py-7">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500 font-black group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
-                                                    {item.collaborator.name.charAt(0)}
+                                                    {item.collaborator?.name?.charAt(0) || '?'}
                                                 </div>
                                                 <div>
-                                                    <p className="font-black text-slate-800 tracking-tight">{item.collaborator.name}</p>
-                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">ID: {item.collaborator.secullumId || '---'}</p>
+                                                    <p className="font-black text-slate-800 tracking-tight">{item.collaborator?.name || 'Vazio'}</p>
+                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">ID: {item.collaborator?.secullumId || '---'}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-10 py-7">
                                             <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">
-                                                {item.collaborator.departamento || '---'}
+                                                {item.collaborator?.departamento || '---'}
                                             </span>
                                         </td>
                                         <td className="px-10 py-7">
                                             <span className="text-[10px] font-black text-slate-500 uppercase bg-slate-100 px-4 py-2 rounded-xl group-hover:bg-white group-hover:shadow-sm transition-all">
-                                                {item.collaborator.posto || 'Geral'}
+                                                {item.collaborator?.posto || 'Geral'}
                                             </span>
                                         </td>
                                         <td className="px-10 py-7">
@@ -420,7 +420,7 @@ export default function NexusDashboard() {
                                         <td className="px-10 py-7">
                                             <div className="flex items-center gap-2 text-slate-500 font-black text-sm">
                                                 <Clock size={14} className="opacity-50" />
-                                                {format(new Date(item.expected_time), 'HH:mm')}
+                                                {item.expected_time ? format(new Date(item.expected_time), 'HH:mm') : '--:--'}
                                             </div>
                                         </td>
                                         <td className="px-10 py-7">
