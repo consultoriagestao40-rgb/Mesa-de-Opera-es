@@ -32,21 +32,50 @@ export async function GET(request: Request) {
         });
 
         // Summary Statistics for the specific day
-        const totalCollaborators = await prisma.collaborator.count({ where: { active: true } });
-        const completedOnDay = await prisma.alertCycle.count({
+        const allActiveCollaborators = await prisma.collaborator.count({ where: { active: true } });
+        
+        // 1. Total Scheduled (Unique collaborators with any AlertCycle today)
+        const scheduledGroups = await prisma.alertCycle.groupBy({
+            by: ['collaborator_id'],
+            where: {
+                date: { gte: startOfDay(targetDate), lte: endOfDay(targetDate) }
+            }
+        });
+        const totalScheduled = scheduledGroups.length;
+
+        // 2. Total Present (Unique collaborators with at least one CONCLUIDO cycle today)
+        const presentGroups = await prisma.alertCycle.groupBy({
+            by: ['collaborator_id'],
             where: {
                 status: 'CONCLUIDO',
                 date: { gte: startOfDay(targetDate), lte: endOfDay(targetDate) }
             }
         });
-        const alertsOnDay = activeCycles.filter(c => c.status === 'EM_ALERTA').length;
+        const totalPresent = presentGroups.length;
+
+        // 3. Total Punches (All CONCLUIDO cycles today)
+        const totalPunches = await prisma.alertCycle.count({
+            where: {
+                status: 'CONCLUIDO',
+                date: { gte: startOfDay(targetDate), lte: endOfDay(targetDate) }
+            }
+        });
+
+        // 4. Total Exceptions (All non-CONCLUIDO cycles in the current monitor list)
+        const totalExceptions = activeCycles.length;
+
+        // 5. Total Off Duty (Active collaborators not in today's schedule)
+        const totalOff = Math.max(0, allActiveCollaborators - totalScheduled);
 
         return NextResponse.json({ 
             cycles: activeCycles,
             stats: {
-                total: totalCollaborators,
-                completed: completedOnDay,
-                alerts: alertsOnDay
+                totalActive: allActiveCollaborators,
+                scheduled: totalScheduled,
+                present: totalPresent,
+                punches: totalPunches,
+                exceptions: totalExceptions,
+                offDuty: totalOff
             }
         });
     } catch (error: any) {

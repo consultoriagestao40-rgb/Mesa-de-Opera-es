@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { useRouter } from 'next/navigation';
+import { addDays, subDays, startOfDay, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 import { 
     Loader2, 
     RefreshCw, 
@@ -15,13 +19,12 @@ import {
     Clock,
     ChevronLeft,
     ChevronRight,
-    Calendar
+    Calendar,
+    UserCheck,
+    UserMinus,
+    CalendarCheck,
+    Coffee
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { addDays, subDays, startOfDay } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
 
 function cn(...inputs: any[]) {
     return twMerge(clsx(inputs));
@@ -30,7 +33,14 @@ function cn(...inputs: any[]) {
 export default function NexusDashboard() {
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [stats, setStats] = useState({ total: 0, completed: 0, alerts: 0 });
+    const [stats, setStats] = useState({ 
+        totalActive: 0, 
+        scheduled: 0, 
+        present: 0, 
+        punches: 0, 
+        exceptions: 0, 
+        offDuty: 0 
+    });
     const [cycles, setCycles] = useState<any[]>([]);
     const [user, setUser] = useState<any>(null);
     const router = useRouter();
@@ -53,7 +63,14 @@ export default function NexusDashboard() {
             if (nexusRes.ok) {
                 const data = await nexusRes.json();
                 setCycles(data.cycles || []);
-                setStats(data.stats || { total: 0, completed: 0, alerts: 0 });
+                setStats(data.stats || { 
+                    totalActive: 0, 
+                    scheduled: 0, 
+                    present: 0, 
+                    punches: 0, 
+                    exceptions: 0, 
+                    offDuty: 0 
+                });
             }
         } catch (error) {
             console.error('Error fetching Nexus data:', error);
@@ -159,43 +176,75 @@ export default function NexusDashboard() {
                 </div>
             </div>
 
-            {/* Matrix KPIs */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="nexus-card p-8 group relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-bl-[4rem] transition-all group-hover:bg-blue-600/5" />
-                    <div className="relative z-10 flex flex-col gap-4">
-                        <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-blue-600 group-hover:bg-blue-50 transition-all">
-                            <Users size={24} />
+            {/* Operational Matrix KPIs - 5 Cards Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+                {/* 1. Na Escala */}
+                <div className="nexus-card p-6 group relative overflow-hidden bg-white">
+                    <div className="flex flex-col gap-4">
+                        <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 transition-all shadow-sm">
+                            <CalendarCheck size={20} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total de Colaboradores</p>
-                            <p className="text-5xl font-black text-slate-900 tracking-tight">{stats.total}</p>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Na Escala Hoje</p>
+                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.scheduled}</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="nexus-card p-8 group relative border-emerald-100 overflow-hidden">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50/50 rounded-bl-[4rem]" />
-                    <div className="relative z-10 flex flex-col gap-4">
-                        <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
-                            <CheckCircle size={24} />
+                {/* 2. Em Folga */}
+                <div className="nexus-card p-6 group relative overflow-hidden bg-slate-50/30">
+                    <div className="flex flex-col gap-4">
+                        <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 transition-all shadow-sm">
+                            <Coffee size={20} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-emerald-600/60 uppercase tracking-widest mb-1">Presença Confirmada</p>
-                            <p className="text-5xl font-black text-slate-900 tracking-tight">{stats.completed}</p>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Em Folga</p>
+                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.offDuty}</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="nexus-card p-8 group border-red-100 overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-red-50/50 rounded-bl-[4rem]" />
-                    <div className="relative z-10 flex flex-col gap-4">
-                        <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 animate-nexus-pulse">
-                            <AlertTriangle size={24} />
+                {/* 3. Pessoas Presentes */}
+                <div className="nexus-card p-6 group relative bg-emerald-50/20 border-emerald-100 overflow-hidden">
+                    <div className="flex flex-col gap-4">
+                        <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
+                            <UserCheck size={20} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-red-600/60 uppercase tracking-widest mb-1">Exceções Ativas</p>
-                            <p className="text-5xl font-black text-slate-900 tracking-tight">{stats.alerts}</p>
+                            <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest mb-1">Pessoas Presentes</p>
+                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.present}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 4. Batidas Totais */}
+                <div className="nexus-card p-6 group relative overflow-hidden bg-blue-50/20">
+                    <div className="flex flex-col gap-4">
+                        <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
+                            <Activity size={20} />
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-black text-blue-600/60 uppercase tracking-widest mb-1">Batidas Totais</p>
+                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.punches}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 5. Exceções Ativas (Table Match) */}
+                <div className="nexus-card p-6 group border-red-100 overflow-hidden relative bg-red-50/10">
+                    <div className={cn(
+                        "flex flex-col gap-4",
+                        stats.exceptions > 0 && "animate-nexus-pulse"
+                    )}>
+                        <div className={cn(
+                            "w-10 h-10 rounded-xl flex items-center justify-center shadow-sm",
+                            stats.exceptions > 0 ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-400"
+                        )}>
+                            <AlertTriangle size={20} />
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-black text-red-600/60 uppercase tracking-widest mb-1">Exceções Ativas</p>
+                            <p className="text-4xl font-black text-slate-900 tracking-tight">{stats.exceptions}</p>
                         </div>
                     </div>
                 </div>
