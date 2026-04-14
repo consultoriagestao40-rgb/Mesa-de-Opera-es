@@ -154,12 +154,15 @@ export async function processNexusCycle() {
                     });
                     // FORCE presence in table: ensure at least one cycle is in EM_ALERTA
                     const targetCycle = cyclesToday.find(c => ['PENDENTE', 'EM_ALERTA', 'ENCERRADO'].includes(c.status));
-                    if (targetCycle && targetCycle.status === 'PENDENTE') {
-                         await prisma.alertCycle.update({
-                             where: { id: targetCycle.id },
-                             data: { status: 'EM_ALERTA' }
-                         });
-                    } else if (!targetCycle && events.length > 0) {
+                    if (targetCycle) {
+                         if (targetCycle.status !== 'EM_ALERTA' && targetCycle.status !== 'ENCERRADO') {
+                            await prisma.alertCycle.update({
+                                where: { id: targetCycle.id },
+                                data: { status: 'EM_ALERTA' }
+                            });
+                         }
+                    } else if (events.length > 0) {
+                        // Create a cycle if missing to ensure synchronization
                         await prisma.alertCycle.create({
                             data: {
                                 collaborator_id: collab.id,
@@ -167,7 +170,7 @@ export async function processNexusCycle() {
                                 expected_time: (function() { 
                                     const [h, m] = events[0].time.split(':').map(Number);
                                     const d = new Date(normalizedToday);
-                                    d.setUTCHours(h + 3, m, 0, 0); // Correctly mapped to UTC
+                                    d.setUTCHours(h + 3, m, 0, 0); 
                                     return d;
                                 })(),
                                 event_type: events[0].type,
@@ -419,13 +422,20 @@ async function triggerNexusAlert(
 }
 
 async function triggerHourlySummary(normalizedToday: Date, brazilNow: Date) {
-    const currentHour = brazilNow.getHours();
+    // Correct way to get the Brazil Hour in Vercel/Node
+    const currentHour = parseInt(new Intl.DateTimeFormat('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        hour: 'numeric',
+        hour12: false
+    }).format(new Date()), 10);
+    
+    const todayStr = format(brazilNow, 'yyyy-MM-dd');
     
     // Check if we already sent a summary for this hour
     const lastSummaryHourStr = await prisma.nexusConfig.findUnique({ where: { key: 'NEXUS_LAST_SUMMARY_HOUR' } });
     const lastSummaryDayStr = await prisma.nexusConfig.findUnique({ where: { key: 'NEXUS_LAST_SUMMARY_DAY' } });
     
-    if (lastSummaryHourStr?.value === currentHour.toString() && lastSummaryDayStr?.value === format(brazilNow, 'yyyy-MM-dd')) {
+    if (lastSummaryHourStr?.value === currentHour.toString() && lastSummaryDayStr?.value === todayStr) {
         return; // Already sent this hour
     }
 
