@@ -114,10 +114,10 @@ export async function processNexusCycle() {
                     const todaySchedule = schedule?.Dias?.find((d: any) => d.DiaSemana === dayOfWeek);
                     if (todaySchedule && (todaySchedule.Entrada1 !== '00:00' || todaySchedule.Saida1 !== '00:00')) {
                         hasScheduleToday = true;
-                        if (todaySchedule.Entrada1 && todaySchedule.Entrada1 !== '00:00') events.push({ time: todaySchedule.Entrada1, type: 'ENTRADA' });
-                        if (todaySchedule.Saida1 && todaySchedule.Saida1 !== '00:00') events.push({ time: todaySchedule.Saida1, type: 'INTERVALO_SAIDA' });
-                        if (todaySchedule.Entrada2 && todaySchedule.Entrada2 !== '00:00') events.push({ time: todaySchedule.Entrada2, type: 'INTERVALO_RETORNO' });
-                        if (todaySchedule.Saida2 && todaySchedule.Saida2 !== '00:00') events.push({ time: todaySchedule.Saida2, type: 'SAIDA' });
+                        // [v5.0] TRACK ONLY ENTRADAS (As requested: Skip intervals and exits)
+                        if (todaySchedule.Entrada1 && todaySchedule.Entrada1 !== '00:00') {
+                            events.push({ time: todaySchedule.Entrada1, type: 'ENTRADA' });
+                        }
                     }
                 }
 
@@ -418,7 +418,8 @@ async function triggerHourlySummary(normalizedToday: Date, brazilNow: Date) {
     const activeCycles = await prisma.alertCycle.findMany({
         where: {
             status: 'EM_ALERTA',
-            date: normalizedToday
+            date: normalizedToday,
+            event_type: 'ENTRADA' // [v5.0] ONLY SUMMARY FOR ENTRADAS
         },
         include: {
             collaborator: true
