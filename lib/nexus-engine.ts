@@ -170,6 +170,20 @@ export async function processNexusCycle() {
         console.error('[Nexus Engine v4] Critical failure:', error.message);
         throw error;
     }
+    }
+}
+
+function cleanPhoneNumber(phone: any): string | null {
+    if (!phone) return null;
+    let cleaned = phone.toString().replace(/\D/g, '');
+    if (cleaned.length < 10) return null;
+    
+    // Se não tem DDI, adiciona 55 (Brasil)
+    if (cleaned.length === 10 || cleaned.length === 11) {
+        cleaned = '55' + cleaned;
+    }
+    
+    return cleaned;
 }
 
 export async function syncCollaborators(secEmployees: any[]) {
@@ -189,6 +203,7 @@ export async function syncCollaborators(secEmployees: any[]) {
                 name: nomeFinal,
                 active: isActive,
                 pis: finalPis,
+                phone: cleanPhoneNumber(emp.Celular || emp.Telefone),
                 posto: emp.Empresa?.Nome || emp.empresaNome || 'Importado Secullum',
                 departamento: emp.Departamento?.Descricao || null
             },
@@ -197,6 +212,7 @@ export async function syncCollaborators(secEmployees: any[]) {
                 secullumId: secId,
                 pis: finalPis,
                 active: isActive,
+                phone: cleanPhoneNumber(emp.Celular || emp.Telefone),
                 posto: emp.Empresa?.Nome || emp.empresaNome || 'Importado Secullum',
                 departamento: emp.Departamento?.Descricao || null
             }
@@ -379,6 +395,12 @@ async function triggerNexusAlert(
     }
 
     const success = await sendWhatsAppMessage('', message);
+    
+    // [v6.0] PRIVATE ALERT: If collaborator has a phone, send private message too
+    if (success && collab.phone) {
+        const privateMessage = `⚠️ Olá *${collab.name}*, notamos que você ainda não registrou sua ENTRADA hoje (prevista para as ${time}). Por favor, regularize seu ponto ou entre em contato com seu supervisor imediatamente. ⏱️`;
+        await sendWhatsAppMessage(collab.phone, privateMessage);
+    }
 
     if (success) {
         await prisma.alertCycle.update({
