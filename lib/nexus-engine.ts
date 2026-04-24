@@ -162,10 +162,7 @@ export async function processNexusCycle() {
             }
         }
 
-        // --- 4. TRIGGER HOURLY SUMMARY ---
-        await triggerHourlySummary(normalizedToday, brazilNow);
-
-        // --- 5. TRIGGER DAILY SUPERVISOR REPORT (8:00 AM) ---
+        // --- 4. TRIGGER DAILY SUPERVISOR REPORT (8:00 AM) ---
         await triggerYesterdayPendingReport(normalizedToday, brazilNow);
 
         return { success: true, timestamp: brazilNow };
@@ -394,94 +391,16 @@ async function triggerNexusAlert(
         });
         console.log(`[Nexus] 📲 Alerta ${step} enviado: ${collab.name} - ${type}`);
     } else {
-        console.error(`[Nexus] ❌ Falha ao enviar alerta ${step} para ${collab.name}`);
+        console.error(`[Nexus] ❌ F    if (success) {
+        await prisma.nexusConfig.upsert({
+            where: { key: 'LAST_YESTERDAY_REPORT_DAY' },
+            update: { value: todayStr },
+            create: { key: 'LAST_YESTERDAY_REPORT_DAY', value: todayStr }
+        });
+        console.log(`[Nexus] 📲 Daily Supervisor Report sent successfully.`);
     }
 }
-
-async function triggerHourlySummary(normalizedToday: Date, brazilNow: Date) {
-    // Correct way to get the Brazil Hour in Vercel/Node
-    const currentHour = parseInt(new Intl.DateTimeFormat('pt-BR', {
-        timeZone: 'America/Sao_Paulo',
-        hour: 'numeric',
-        hour12: false
-    }).format(new Date()), 10);
-    
-    const todayStr = format(brazilNow, 'yyyy-MM-dd');
-    
-    // Check if we already sent a summary for this hour
-    const lastSummaryHourStr = await prisma.nexusConfig.findUnique({ where: { key: 'NEXUS_LAST_SUMMARY_HOUR' } });
-    const lastSummaryDayStr = await prisma.nexusConfig.findUnique({ where: { key: 'NEXUS_LAST_SUMMARY_DAY' } });
-    
-    if (lastSummaryHourStr?.value === currentHour.toString() && lastSummaryDayStr?.value === todayStr) {
-        return; // Already sent this hour
-    }
-
-    console.log(`[Nexus] 📊 Generating hourly summary for ${currentHour}:00...`);
-
-    const activeCycles = await prisma.alertCycle.findMany({
-        where: {
-            status: 'EM_ALERTA',
-            date: normalizedToday,
-            event_type: 'ENTRADA' // [v5.0] ONLY SUMMARY FOR ENTRADAS
-        },
-        include: {
-            collaborator: true
-        },
-        orderBy: [
-            { collaborator: { posto: 'asc' } },
-            { collaborator: { departamento: 'asc' } }
-        ]
-    });
-
-    if (activeCycles.length === 0) {
-        console.log('[Nexus] ⏭️ No active exceptions to report in hourly summary.');
-        return;
-    }
-
-    // Grouping
-    const groups: Record<string, Record<string, any[]>> = {};
-    activeCycles.forEach(cycle => {
-        const posto = cycle.collaborator?.posto || 'GERAL';
-        const depto = cycle.collaborator?.departamento || 'NÃO INFORMADO';
-        
-        if (!groups[posto]) groups[posto] = {};
-        if (!groups[posto][depto]) groups[posto][depto] = [];
-        
-        groups[posto][depto].push(cycle);
-    });
-
-    let message = `🚀 *NEXUS — RESUMO DE PENDÊNCIAS* 🚀\n` +
-                  `📅 _${new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' }).format(brazilNow)} — ${currentHour}:00_\n\n`;
-
-    for (const [posto, deptos] of Object.entries(groups)) {
-        message += `📍 *POSTO: ${posto.toUpperCase()}*\n`;
-        for (const [depto, cycles] of Object.entries(deptos)) {
-            message += `  • *${depto}*:\n`;
-            cycles.forEach(c => {
-                const timeStr = c.expected_time ? format(new Date(c.expected_time.getTime() - 3 * 60 * 60 * 1000), 'HH:mm') : '--:--';
-                message += `    - ${c.collaborator?.name} (_Entrada: ${timeStr}_)\n`;
-            });
-        }
-        message += `\n`;
-    }
-
-    message += `⚠️ *Total de Casos não tratados: ${activeCycles.length}*\n` +
-               `🔗 _Verificar no Painel: https://mesa-de-opera-es.vercel.app/dashboard_`;
-
-    const success = await sendWhatsAppMessage('', message);
-    
-    if (success) {
-        await prisma.nexusConfig.upsert({
-            where: { key: 'NEXUS_LAST_SUMMARY_HOUR' },
-            update: { value: currentHour.toString() },
-            create: { key: 'NEXUS_LAST_SUMMARY_HOUR', value: currentHour.toString() }
-        });
-        await prisma.nexusConfig.upsert({
-            where: { key: 'NEXUS_LAST_SUMMARY_DAY' },
-            update: { value: format(brazilNow, 'yyyy-MM-dd') },
-            create: { key: 'NEXUS_LAST_SUMMARY_DAY', value: format(brazilNow, 'yyyy-MM-dd') }
-        });
-        console.log(`[Nexus] 📲 Hourly summary sent successfully.`);
+`);
     }
 }
 
