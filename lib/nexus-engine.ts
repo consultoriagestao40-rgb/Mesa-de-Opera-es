@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma';
 import { getEmployees, getScheduleByNumber, getPunches, getAfastamentos } from '@/lib/secullum-service';
 import { sendWhatsAppMessage } from '@/lib/whatsapp-service';
-import { format, isAfter, isBefore, addMinutes, startOfDay, endOfDay } from 'date-fns';
+import { format, isAfter, isBefore, addMinutes, subDays, startOfDay, endOfDay } from 'date-fns';
 
 /**
  * Nexus Engine v3.0
@@ -165,6 +165,9 @@ export async function processNexusCycle() {
         // --- 4. TRIGGER HOURLY SUMMARY ---
         await triggerHourlySummary(normalizedToday, brazilNow);
 
+        // --- 5. TRIGGER DAILY SUPERVISOR REPORT (8:00 AM) ---
+        await triggerYesterdayPendingReport(normalizedToday, brazilNow);
+
         return { success: true, timestamp: brazilNow };
     } catch (error: any) {
         console.error('[Nexus Engine v4] Critical failure:', error.message);
@@ -323,10 +326,10 @@ async function checkEvent(
             });
         }
 
-        // Escalation: 5min → Step 1, 20min → Step 2, 40min → Step 3
+        // Escalation: 5min → Step 1, 15min → Step 2, 25min (15+10) → Step 3
         let targetStep = 0;
-        if (diffMinutes >= 40) targetStep = 3;
-        else if (diffMinutes >= 20) targetStep = 2;
+        if (diffMinutes >= 25) targetStep = 3;
+        else if (diffMinutes >= 15) targetStep = 2;
         else if (diffMinutes >= 5) targetStep = 1;
 
         if (targetStep > cycle.current_step) {
@@ -479,5 +482,98 @@ async function triggerHourlySummary(normalizedToday: Date, brazilNow: Date) {
             create: { key: 'NEXUS_LAST_SUMMARY_DAY', value: format(brazilNow, 'yyyy-MM-dd') }
         });
         console.log(`[Nexus] 📲 Hourly summary sent successfully.`);
+    }
+}
+
+async function triggerYesterdayPendingReport(normalizedToday: Date, brazilNow: Date) {
+    const currentHour = parseInt(new Intl.DateTimeFormat('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        hour: 'numeric',
+        hour12: false
+    }).format(new Date()), 10);
+    
+    // We only trigger this at 8:00 AM
+    if (currentHour !== 8) return;
+
+    const todayStr = format(brazilNow, 'yyyy-MM-dd');
+    
+    // Check if we already sent this daily management report today
+    const lastDailyReportDay = await prisma.nexusConfig.findUnique({ where: { key: 'LAST_YESTERDAY_REPORT_DAY' } });
+    if (lastDailyReportDay?.value === todayStr) {
+        return; 
+    }
+
+    console.log(`[Nexus] 📋 Generating Daily Supervisor Report (Yesterday Pendencies)...`);
+
+    const yesterday = subDays(normalizedToday, 1);
+    const yesterdayStr = format(yesterday, 'dd/MM');
+
+    const pendingCycles = await prisma.alertCycle.findMany({
+        where: {
+            status: 'EM_ALERTA',
+            date: yesterday,
+            event_type: 'ENTRADA'
+        },
+        include: {
+            collaborator: true
+        },
+        orderBy: [
+            { collaborator: { posto: 'asc' } },
+            { collaborator: { departamento: 'asc' } }
+        ]
+    });
+
+    if (pendingCycles.length === 0) {
+        console.log('[Nexus] ⏭️ No pending exceptions from yesterday to report.');
+        // Still mark as sent to avoid repeated checks
+        await prisma.nexusConfig.upsert({
+            where: { key: 'LAST_YESTERDAY_REPORT_DAY' },
+            update: { value: todayStr },
+            create: { key: 'LAST_YESTERDAY_REPORT_DAY', value: todayStr }
+        });
+        return;
+    }
+
+    // Grouping
+    const groups: Record<string, Record<string, any[]>> = {};
+    pendingCycles.forEach(cycle => {
+        const posto = cycle.collaborator?.posto || 'GERAL';
+        const depto = cycle.collaborator?.departamento || 'NÃO INFORMADO';
+        
+        if (!groups[posto]) groups[posto] = {};
+        if (!groups[posto][depto]) groups[posto][depto] = [];
+        
+        groups[posto][depto].push(cycle);
+    });
+
+    let message = `📋 *NEXUS — RELATÓRIO GERENCIAL* 📋\n` +
+                  `⚠️ *PENDÊNCIAS DE ONTEM (${yesterdayStr})*\n` +
+                  `━━━━━━━━━━━━━━━━━━━━━━\n` +
+                  `Supervisores, favor providenciar as justificativas para as ausências abaixo no sistema:\n\n`;
+
+    for (const [posto, deptos] of Object.entries(groups)) {
+        message += `📍 *POSTO: ${posto.toUpperCase()}*\n`;
+        for (const [depto, cycles] of Object.entries(deptos)) {
+            message += `  • *${depto}*:\n`;
+            cycles.forEach(c => {
+                const timeStr = c.expected_time ? format(new Date(c.expected_time.getTime() - 3 * 60 * 60 * 1000), 'HH:mm') : '--:--';
+                message += `    - ${c.collaborator?.name} (Entrada: ${timeStr})\n`;
+            });
+        }
+        message += `\n`;
+    }
+
+    message += `🛑 *Total de Justificativas Pendentes: ${pendingCycles.length}*\n` +
+               `🔗 _Link para lançamento: https://mesa-de-opera-es.vercel.app/dashboard_`;
+
+    const success = await sendWhatsAppMessage('', message);
+    
+    if (success) {
+        await prisma.nexusConfig.upsert({
+            where: { key: 'LAST_YESTERDAY_REPORT_DAY' },
+            update: { value: todayStr },
+            create: { key: 'LAST_YESTERDAY_REPORT_DAY', value: todayStr }
+        });
+        console.log(`[Nexus] 📲 Daily Supervisor Report sent successfully.`);
     }
 }
