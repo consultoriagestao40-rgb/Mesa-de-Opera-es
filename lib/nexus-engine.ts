@@ -451,7 +451,7 @@ async function triggerHourlySummary(normalizedToday: Date, brazilNow: Date) {
     });
 
     let message = `🚀 *NEXUS — RESUMO DE PENDÊNCIAS* 🚀\n` +
-                  `📅 _${format(brazilNow, 'dd/MM')} — ${currentHour}:00_\n\n`;
+                  `📅 _${new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' }).format(brazilNow)} — ${currentHour}:00_\n\n`;
 
     for (const [posto, deptos] of Object.entries(groups)) {
         message += `📍 *POSTO: ${posto.toUpperCase()}*\n`;
@@ -506,7 +506,11 @@ async function triggerYesterdayPendingReport(normalizedToday: Date, brazilNow: D
     console.log(`[Nexus] 📋 Generating Daily Supervisor Report (Yesterday Pendencies)...`);
 
     const yesterday = subDays(normalizedToday, 1);
-    const yesterdayStr = format(yesterday, 'dd/MM');
+    const yesterdayStr = new Intl.DateTimeFormat('pt-BR', {
+        timeZone: 'UTC', // normalizedToday is already UTC 00:00
+        day: '2-digit',
+        month: '2-digit'
+    }).format(yesterday);
 
     const pendingCycles = await prisma.alertCycle.findMany({
         where: {
