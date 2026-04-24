@@ -170,7 +170,6 @@ export async function processNexusCycle() {
         console.error('[Nexus Engine v4] Critical failure:', error.message);
         throw error;
     }
-    }
 }
 
 function cleanPhoneNumber(phone: any): string | null {
