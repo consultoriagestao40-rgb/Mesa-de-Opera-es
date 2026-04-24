@@ -391,16 +391,7 @@ async function triggerNexusAlert(
         });
         console.log(`[Nexus] 📲 Alerta ${step} enviado: ${collab.name} - ${type}`);
     } else {
-        console.error(`[Nexus] ❌ F    if (success) {
-        await prisma.nexusConfig.upsert({
-            where: { key: 'LAST_YESTERDAY_REPORT_DAY' },
-            update: { value: todayStr },
-            create: { key: 'LAST_YESTERDAY_REPORT_DAY', value: todayStr }
-        });
-        console.log(`[Nexus] 📲 Daily Supervisor Report sent successfully.`);
-    }
-}
-`);
+        console.error(`[Nexus] ❌ Falha ao enviar alerta ${step} para ${collab.name}`);
     }
 }
 
