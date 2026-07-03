@@ -1,15 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import axios from 'axios';
 import { processNexusCycle } from '@/lib/nexus-engine';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
-        console.log('[SYNC] Iniciando sincronismo de emergência...');
+        const { searchParams } = new URL(request.url);
+        const dateParam = searchParams.get('date') || undefined;
 
-        console.log('[SYNC] Iniciando sincronismo de emergência via processo completo');
+        console.log(`[SYNC] Iniciando sincronismo de emergência para data: ${dateParam || 'Hoje'}...`);
         const configs = [
             { key: 'SECULLUM_USERNAME', value: 'cristiano@grupojvsserv.com.br' },
             { key: 'SECULLUM_PASSWORD', value: '8Gmw.@DzuuHEz9' },
@@ -24,7 +25,7 @@ export async function GET() {
         }
 
         // 2. Disparar o Sincronismo usando o processo completo
-        const result = await processNexusCycle();
+        const result = await processNexusCycle(dateParam);
 
         // 3. Verificar o resultado no banco
         const count = await prisma.collaborator.count();

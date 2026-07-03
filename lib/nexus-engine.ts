@@ -17,14 +17,14 @@ import { format, isAfter, isBefore, addMinutes, subDays, startOfDay, endOfDay } 
 // Cache schedules in-process to avoid redundant API calls within a single cycle
 const scheduleCache = new Map<number, any>();
 
-export async function processNexusCycle() {
+export async function processNexusCycle(targetDateStr?: string) {
     console.log('[Nexus Engine v3] Starting cycle...');
     scheduleCache.clear();
 
     const now = new Date();
     // Adjust to Brazil Time (UTC-3) to determine "Which day is it in Brazil?"
     const brazilNow = new Date(now.getTime() - 3 * 60 * 60 * 1000);
-    const todayStr = format(brazilNow, 'yyyy-MM-dd');
+    const todayStr = targetDateStr || format(brazilNow, 'yyyy-MM-dd');
     
     // Normalized "Today" for the database: The start of the Brazil day (00:00:00) 
     const normalizedToday = new Date(todayStr + 'T00:00:00Z'); 
@@ -52,7 +52,8 @@ export async function processNexusCycle() {
         // 3. Process each ACTIVE collaborator
         const collaborators = await prisma.collaborator.findMany({ where: { active: true } });
         // Correct Mapping: JS (0=Sun, 1=Mon, 2=Tue) -> Secullum (0=Mon, 1=Tue...6=Sun)
-        const dayOfWeek = (brazilNow.getDay() + 6) % 7; 
+        const targetDateObj = new Date(todayStr + 'T12:00:00Z');
+        const dayOfWeek = (targetDateObj.getDay() + 6) % 7; 
 
         for (const collab of collaborators) {
             if (!collab.secullumId) continue;
