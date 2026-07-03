@@ -202,8 +202,30 @@ export async function syncCollaborators(secEmployees: any[]) {
         if (!secId) continue;
 
         const isActive = !emp.Demissao;
-        const finalPis = (emp.NumeroPis || emp.numeroPis || emp.Pis || emp.pis || '').toString() || null;
-        const finalCpf = (emp.Cpf || emp.cpf || '').toString().replace(/\D/g, '') || null;
+        let finalPis = (emp.NumeroPis || emp.numeroPis || emp.Pis || emp.pis || '').toString() || null;
+        let finalCpf = (emp.Cpf || emp.cpf || '').toString().replace(/\D/g, '') || null;
+
+        // Evitar violação de restrição única para CPF
+        if (finalCpf) {
+            const existingWithCpf = await prisma.collaborator.findUnique({
+                where: { cpf: finalCpf }
+            });
+            if (existingWithCpf && existingWithCpf.secullumId !== secId) {
+                console.warn(`[Collaborator Sync] CPF ${finalCpf} já está em uso pelo colaborador secullumId ${existingWithCpf.secullumId}. Definindo como null para secullumId ${secId}.`);
+                finalCpf = null;
+            }
+        }
+
+        // Evitar violação de restrição única para PIS
+        if (finalPis) {
+            const existingWithPis = await prisma.collaborator.findUnique({
+                where: { pis: finalPis }
+            });
+            if (existingWithPis && existingWithPis.secullumId !== secId) {
+                console.warn(`[Collaborator Sync] PIS ${finalPis} já está em uso pelo colaborador secullumId ${existingWithPis.secullumId}. Definindo como null para secullumId ${secId}.`);
+                finalPis = null;
+            }
+        }
 
         await prisma.collaborator.upsert({
             where: { secullumId: secId },
