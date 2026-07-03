@@ -18,6 +18,13 @@ export async function GET() {
             }
         });
 
+        // Buscar funcionários diretamente na API da Secullum
+        const { getEmployees } = require('@/lib/secullum-service');
+        const secEmployees = await getEmployees();
+        const secEmployeesMatched = secEmployees.filter((e: any) => 
+            (e.Nome || e.nome || '').toLowerCase().includes('adriana')
+        );
+
         // Buscar batidas diretas do Secullum hoje
         const todayPunches = await getPunches(todayStr, todayStr);
 
@@ -32,6 +39,7 @@ export async function GET() {
             success: true,
             todayStr,
             collaboratorsMatched: collaborators,
+            secEmployeesMatched,
             punchesInSecullumCount: todayPunches.length,
             punchesInSecullum: todayPunches,
             sentPunchesCount: sentPunches.length,
