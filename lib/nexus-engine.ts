@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { getEmployees, getScheduleByNumber, getPunches, getAfastamentos } from '@/lib/secullum-service';
+import axios from 'axios';
 import { sendWhatsAppMessage } from '@/lib/whatsapp-service';
 import { format, isAfter, isBefore, addMinutes, subDays, startOfDay, endOfDay } from 'date-fns';
 
@@ -40,6 +41,13 @@ export async function processNexusCycle() {
             getAfastamentos(todayStr, todayStr)
         ]);
         console.log(`[Nexus Engine v4] ${todayPunches.length} punches, ${secAfastamentos.length} afastamentos today`);
+
+        // Sync punches to Workforce Hub
+        try {
+            await syncPunchesToWorkforce(todayStr, todayPunches);
+        } catch (wfError: any) {
+            console.error('[Nexus Engine] Failed to sync punches to Workforce Hub:', wfError.message);
+        }
 
         // 3. Process each ACTIVE collaborator
         const collaborators = await prisma.collaborator.findMany({ where: { active: true } });
@@ -195,6 +203,7 @@ export async function syncCollaborators(secEmployees: any[]) {
 
         const isActive = !emp.Demissao;
         const finalPis = (emp.NumeroPis || emp.numeroPis || emp.Pis || emp.pis || '').toString() || null;
+        const finalCpf = (emp.Cpf || emp.cpf || '').toString().replace(/\D/g, '') || null;
 
         await prisma.collaborator.upsert({
             where: { secullumId: secId },
@@ -202,6 +211,7 @@ export async function syncCollaborators(secEmployees: any[]) {
                 name: nomeFinal,
                 active: isActive,
                 pis: finalPis,
+                cpf: finalCpf,
                 phone: cleanPhoneNumber(emp.Celular || emp.Telefone),
                 posto: emp.Empresa?.Nome || emp.empresaNome || 'Importado Secullum',
                 departamento: emp.Departamento?.Descricao || null
@@ -210,6 +220,7 @@ export async function syncCollaborators(secEmployees: any[]) {
                 name: nomeFinal,
                 secullumId: secId,
                 pis: finalPis,
+                cpf: finalCpf,
                 active: isActive,
                 phone: cleanPhoneNumber(emp.Celular || emp.Telefone),
                 posto: emp.Empresa?.Nome || emp.empresaNome || 'Importado Secullum',
@@ -511,4 +522,110 @@ async function triggerYesterdayPendingReport(normalizedToday: Date, brazilNow: D
         });
         console.log(`[Nexus] 📲 Daily Supervisor Report sent successfully.`);
     }
+}
+
+async function sendWorkforceWebhook(cpf: string, timestamp: string) {
+    const url = process.env.WORKFORCE_API_URL || 'https://workforce-hub-henna.vercel.app/api/integration/nexus/clock-in';
+    const token = process.env.WORKFORCE_INTEGRATION_TOKEN || 'nexus-default-token';
+
+    console.log(`[Workforce Webhook] Sending punch for CPF: ${cpf}, Timestamp: ${timestamp}`);
+    try {
+        const response = await axios.post(url, {
+            cpf,
+            timestamp
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        console.log(`[Workforce Webhook] Success: status ${response.status}`, response.data);
+        return true;
+    } catch (error: any) {
+        console.error(`[Workforce Webhook] Failure:`, error.response?.data || error.message);
+        return false;
+    }
+}
+
+export async function syncPunchesToWorkforce(todayStr: string, todayPunches: any[]) {
+    console.log(`[Workforce Sync] Processing ${todayPunches.length} punches for date ${todayStr}`);
+    
+    // Normalized start of day (UTC) for database matching
+    const normalizedToday = new Date(todayStr + 'T00:00:00Z');
+
+    // Retrieve all active collaborators with CPFs
+    const collaborators = await prisma.collaborator.findMany({
+        where: {
+            active: true,
+            cpf: { not: null }
+        }
+    });
+
+    const collabMap = new Map<string, any>();
+    collaborators.forEach(c => {
+        if (c.secullumId) {
+            collabMap.set(c.secullumId, c);
+        }
+    });
+
+    for (const punch of todayPunches) {
+        const secEmployeeId = (punch.FuncionarioId || punch.funcionarioId || '').toString();
+        if (!secEmployeeId) continue;
+
+        const collab = collabMap.get(secEmployeeId);
+        if (!collab || !collab.cpf) continue;
+
+        // Secullum columns representing clock-ins/outs
+        const columns = [
+            'Entrada1', 'Saida1', 'Entrada2', 'Saida2', 
+            'Entrada3', 'Saida3', 'Entrada4', 'Saida4', 
+            'Entrada5', 'Saida5'
+        ];
+
+        for (const col of columns) {
+            const val = punch[col];
+            // Must be a valid time string in format HH:mm
+            if (!val || typeof val !== 'string' || !val.includes(':')) continue;
+
+            // Check if this punch was already processed and sent
+            const alreadySent = await prisma.sentPunch.findUnique({
+                where: {
+                    collaboratorId_date_columnName_punchTime: {
+                        collaboratorId: collab.id,
+                        date: normalizedToday,
+                        columnName: col,
+                        punchTime: val
+                    }
+                }
+            });
+
+            if (alreadySent) continue;
+
+            // Construct UTC ISO timestamp from Secullum's Brazil local time (UTC-3)
+            const [pHours, pMinutes] = val.split(':').map(Number);
+            const punchTimeUtc = new Date(normalizedToday);
+            punchTimeUtc.setUTCHours(pHours + 3, pMinutes, 0, 0);
+            const timestamp = punchTimeUtc.toISOString();
+
+            // Send webhook
+            const success = await sendWorkforceWebhook(collab.cpf, timestamp);
+
+            // Record as sent in database if successful
+            if (success) {
+                try {
+                    await prisma.sentPunch.create({
+                        data: {
+                            collaboratorId: collab.id,
+                            date: normalizedToday,
+                            columnName: col,
+                            punchTime: val
+                        }
+                    });
+                } catch (dbError) {
+                    console.error('[Workforce Sync] Error saving SentPunch:', dbError);
+                }
+            }
+        }
+    }
+    console.log('[Workforce Sync] Completed.');
 }

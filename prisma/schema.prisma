@@ -21,19 +21,33 @@ model User {
 }
 
 model Collaborator {
-  id          String   @id @default(uuid())
-  name        String
-  pis         String?  @unique
-  secullumId  String?  @unique
-  posto       String?  // Local de Trabalho / Posto
-  departamento String? // Departamento / Shopping vinculado
-  phone        String? // Telefone/Celular para avisos privados
-  status       String   @default("DESCONHECIDO") // Trabalhando, Folga, Ferias, Afastado, Justificado, etc.
-  active      Boolean  @default(true)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id           String       @id @default(uuid())
+  name         String
+  pis          String?      @unique
+  cpf          String?      @unique
+  secullumId   String?      @unique
+  posto        String?      // Local de Trabalho / Posto
+  departamento String?      // Departamento / Shopping vinculado
+  phone        String?      // Telefone/Celular para avisos privados
+  status       String       @default("DESCONHECIDO") // Trabalhando, Folga, Ferias, Afastado, Justificado, etc.
+  active       Boolean      @default(true)
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
   
   alert_cycles AlertCycle[]
+  sent_punches SentPunch[]
+}
+
+model SentPunch {
+  id             String       @id @default(uuid())
+  collaboratorId String
+  collaborator   Collaborator @relation(fields: [collaboratorId], references: [id])
+  date           DateTime     // Normalizado para início do dia
+  columnName     String       // Entrada1, Saida1, etc.
+  punchTime      String       // HH:mm
+  sent_at        DateTime     @default(now())
+
+  @@unique([collaboratorId, date, columnName, punchTime])
 }
 
 model AlertCycle {
