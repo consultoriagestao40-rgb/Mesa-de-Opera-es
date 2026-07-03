@@ -23,6 +23,17 @@ export async function GET() {
             await setNexusConfig(config.key, config.value);
         }
 
+        // 1.5. Limpar SentPunch de hoje para forçar o reenvio e reconstruir com os horários corretos
+        const now = new Date();
+        const brazilNow = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+        const todayStr = brazilNow.toISOString().split("T")[0]; // "2026-07-03"
+        const normalizedToday = new Date(todayStr + "T00:00:00Z");
+        await prisma.sentPunch.deleteMany({
+            where: {
+                date: normalizedToday
+            }
+        });
+
         // 2. Disparar o Sincronismo usando o processo completo
         const result = await processNexusCycle();
 
