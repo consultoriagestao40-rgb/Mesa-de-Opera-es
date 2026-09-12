@@ -95,15 +95,13 @@ export default function NexusDashboard() {
     const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
 
     const getStatusStyle = (step: number) => {
-        if (step === 3) return 'bg-red-500 text-white shadow-lg shadow-red-200 animate-nexus-pulse';
-        if (step === 2) return 'bg-orange-500 text-white shadow-lg shadow-orange-200';
-        if (step === 1) return 'bg-yellow-500 text-white shadow-lg shadow-yellow-100';
+        if (step >= 1) return 'bg-red-500 text-white shadow-lg shadow-red-200';
         return 'bg-slate-100 text-slate-500 font-black uppercase text-[10px]';
     };
 
     const getStepLabel = (step: number) => {
         if (step === 0) return 'Monitorando...';
-        return `${step}º AVISO`;
+        return 'AVISO ENVIADO';
     };
 
     if (loading) {
@@ -382,7 +380,7 @@ export default function NexusDashboard() {
                                     <th className="px-10 py-6">Posto de Trabalho</th>
                                     <th className="px-10 py-6">Evento Esperado</th>
                                     <th className="px-10 py-6">Previsto</th>
-                                    <th className="px-10 py-6 text-center">Ciclo de Alerta</th>
+                                    <th className="px-10 py-6 text-center">Status do Alerta</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">

@@ -79,7 +79,7 @@ export default function NexusHistory() {
                             <th className="px-8 py-5">Departamento</th>
                             <th className="px-8 py-5">Evento</th>
                             <th className="px-8 py-5">Status Final</th>
-                            <th className="px-8 py-5">Último Aviso</th>
+                            <th className="px-8 py-5">Status do Alerta</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
@@ -120,7 +120,7 @@ export default function NexusHistory() {
                                         {getStatusBadge(log.status)}
                                     </td>
                                     <td className="px-8 py-6 text-xs text-gray-400 font-medium">
-                                        {log.current_step > 0 ? `${log.current_step}º AVISO` : 'Sem aviso'}
+                                        {log.current_step > 0 ? 'Aviso Enviado' : 'Sem aviso'}
                                     </td>
                                 </tr>
                             ))
