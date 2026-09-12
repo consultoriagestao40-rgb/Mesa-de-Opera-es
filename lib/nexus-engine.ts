@@ -3,6 +3,7 @@ import { getEmployees, getScheduleByNumber, getPunches, getAfastamentos } from '
 import axios from 'axios';
 import { sendWhatsAppMessage } from '@/lib/whatsapp-service';
 import { format, isAfter, isBefore, addMinutes, subDays, startOfDay, endOfDay } from 'date-fns';
+import { getNexusConfig } from '@/lib/config-service';
 
 /**
  * Nexus Engine v3.0
@@ -345,7 +346,7 @@ async function checkEvent(
                 date: normalizedToday,
                 expected_time: expectedTime,
                 event_type: type,
-                status: diffMinutes >= 5 ? 'EM_ALERTA' : 'PENDENTE',
+                status: diffMinutes >= 10 ? 'EM_ALERTA' : 'PENDENTE',
                 current_step: 0
             }
         });
@@ -363,8 +364,8 @@ async function checkEvent(
         return;
     }
 
-    // Escalation logic for active alerts
-    if (diffMinutes >= 5 && (cycle.status === 'PENDENTE' || cycle.status === 'EM_ALERTA')) {
+    // Alert once after 10 minutes of delay (single warning, no repeat)
+    if (diffMinutes >= 10 && (cycle.status === 'PENDENTE' || cycle.status === 'EM_ALERTA')) {
         if (cycle.status === 'PENDENTE') {
             await prisma.alertCycle.update({
                 where: { id: cycle.id },
@@ -372,15 +373,40 @@ async function checkEvent(
             });
         }
 
-        // Escalation: 5min → Step 1, 15min → Step 2, 25min (15+10) → Step 3
-        let targetStep = 0;
-        if (diffMinutes >= 25) targetStep = 3;
-        else if (diffMinutes >= 15) targetStep = 2;
-        else if (diffMinutes >= 5) targetStep = 1;
-
-        if (targetStep > cycle.current_step) {
-            await triggerNexusAlert(collab, type, expectedTimeStr, targetStep, cycle.id);
+        // Only ONE alert message is sent (step 1)
+        if (cycle.current_step === 0) {
+            await triggerNexusAlert(collab, type, expectedTimeStr, 1, cycle.id);
         }
+    }
+}
+
+async function isCollabAllowedForGroupAlert(collab: any): Promise<boolean> {
+    try {
+        if (!collab) return false;
+        const rawConfig = await getNexusConfig('WHATSAPP_GROUP_RULES');
+        if (!rawConfig) return true; // Default: todos habilitados
+
+        const rules = JSON.parse(rawConfig);
+        const collabId = collab.id;
+        const posto = (collab.posto || 'Geral').trim();
+
+        // 1. Exceção individual de colaborador
+        if (rules.disabledCollaboratorIds && Array.isArray(rules.disabledCollaboratorIds) && rules.disabledCollaboratorIds.includes(collabId)) {
+            return false;
+        }
+        if (rules.enabledCollaboratorIds && Array.isArray(rules.enabledCollaboratorIds) && rules.enabledCollaboratorIds.includes(collabId)) {
+            return true;
+        }
+
+        // 2. Filtro por contrato/posto
+        if (rules.disabledContracts && Array.isArray(rules.disabledContracts) && rules.disabledContracts.includes(posto)) {
+            return false;
+        }
+
+        return true;
+    } catch (e) {
+        console.error('[Nexus Engine] Erro ao verificar regras de filtro do grupo:', e);
+        return true;
     }
 }
 
@@ -391,11 +417,6 @@ async function triggerNexusAlert(
     step: number,
     cycleId: string
 ) {
-    const labels = ['1º AVISO', '2º AVISO', '3º AVISO'];
-    const emoji = ['⚠️', '🚨', '🆘'];
-    const banner = labels[step - 1];
-    const icon = emoji[step - 1];
-
     const eventLabels: Record<string, string> = {
         ENTRADA: 'Entrada no Turno',
         INTERVALO_SAIDA: 'Saída para Intervalo',
@@ -403,12 +424,13 @@ async function triggerNexusAlert(
         SAIDA: 'Saída do Turno'
     };
 
-    const message = `${icon} *${banner} — NEXUS OPERACIONAL* ${icon}\n\n` +
+    const message = `⚠️ *AVISO DE ATRASO — NEXUS OPERACIONAL* ⚠️\n\n` +
         `👤 *Colaborador:* ${collab.name}\n` +
         `📍 *Posto:* ${collab.posto || 'Geral'}\n` +
         `🏢 *Depto:* ${collab.departamento || 'Não informado'}\n` +
         `🕒 *Evento:* ${eventLabels[type] || type}\n` +
         `⏰ *Horário Previsto:* ${time}\n` +
+        `⏱️ *Atraso:* Mais de 10 minutos sem registro de batida\n` +
         `❌ *Batida não registrada no Secullum*\n\n` +
         `Verificar presença no local imediatamente! ⏱️`;
 
@@ -427,11 +449,26 @@ async function triggerNexusAlert(
         return;
     }
 
+    // [v7.0] GROUP FILTER: Check if contract / collaborator is allowed for Mesa de Operações group
+    const allowedForGroup = await isCollabAllowedForGroupAlert(collab);
+    if (!allowedForGroup) {
+        console.log(`[Nexus] ⏭️ Alerta ignorado para o grupo da mesa: ${collab.name} (Posto: ${collab.posto}) está desabilitado no filtro.`);
+        await prisma.alertCycle.update({
+            where: { id: cycleId },
+            data: {
+                current_step: step,
+                last_alert_at: new Date(),
+                status: 'EM_ALERTA'
+            }
+        });
+        return;
+    }
+
     const success = await sendWhatsAppMessage('', message);
     
     // [v6.0] PRIVATE ALERT: If collaborator has a phone, send private message too
     if (success && collab.phone) {
-        const privateMessage = `⚠️ Olá *${collab.name}*, notamos que você ainda não registrou sua ENTRADA hoje (prevista para as ${time}). Por favor, regularize seu ponto ou entre em contato com seu supervisor imediatamente. ⏱️`;
+        const privateMessage = `⚠️ Olá *${collab.name}*, identificamos que você ainda não registrou sua ENTRADA hoje (prevista para as ${time} — atraso superior a 10 minutos). Por favor, regularize seu ponto ou entre em contato com seu supervisor imediatamente. ⏱️`;
         await sendWhatsAppMessage(collab.phone, privateMessage);
     }
 
@@ -444,42 +481,45 @@ async function triggerNexusAlert(
                 status: 'EM_ALERTA'
             }
         });
-        console.log(`[Nexus] 📲 Alerta ${step} enviado: ${collab.name} - ${type}`);
+        console.log(`[Nexus] 📲 Alerta de atraso enviado: ${collab.name} - ${type}`);
     } else {
-        console.error(`[Nexus] ❌ Falha ao enviar alerta ${step} para ${collab.name}`);
+        console.error(`[Nexus] ❌ Falha ao enviar alerta para ${collab.name}`);
     }
 }
 
-async function triggerYesterdayPendingReport(normalizedToday: Date, brazilNow: Date) {
+export async function triggerYesterdayPendingReport(normalizedToday: Date, brazilNow: Date, forceSend: boolean = false) {
     const currentHour = parseInt(new Intl.DateTimeFormat('pt-BR', {
         timeZone: 'America/Sao_Paulo',
         hour: 'numeric',
         hour12: false
     }).format(new Date()), 10);
     
-    // We only trigger this at 8:00 AM
-    if (currentHour !== 8) return;
+    // Dispara a partir das 8:00 AM (ou se forçado)
+    if (!forceSend && currentHour < 8) return;
 
     const todayStr = format(brazilNow, 'yyyy-MM-dd');
     
-    // Check if we already sent this daily management report today
-    const lastDailyReportDay = await prisma.nexusConfig.findUnique({ where: { key: 'LAST_YESTERDAY_REPORT_DAY' } });
-    if (lastDailyReportDay?.value === todayStr) {
-        return; 
+    // Verifica se já enviamos o relatório hoje
+    if (!forceSend) {
+        const lastDailyReportDay = await prisma.nexusConfig.findUnique({ where: { key: 'LAST_YESTERDAY_REPORT_DAY' } });
+        if (lastDailyReportDay?.value === todayStr) {
+            return; 
+        }
     }
 
-    console.log(`[Nexus] 📋 Generating Daily Supervisor Report (Yesterday Pendencies)...`);
+    console.log(`[Nexus] 📋 Generating Daily Supervisor Report (Yesterday Summary)...`);
 
     const yesterday = subDays(normalizedToday, 1);
     const yesterdayStr = new Intl.DateTimeFormat('pt-BR', {
         timeZone: 'UTC', // normalizedToday is already UTC 00:00
         day: '2-digit',
-        month: '2-digit'
+        month: '2-digit',
+        year: 'numeric'
     }).format(yesterday);
 
-    const pendingCycles = await prisma.alertCycle.findMany({
+    // Busca todos os ciclos de ontem para ENTRADA
+    const allYesterdayCycles = await prisma.alertCycle.findMany({
         where: {
-            status: 'EM_ALERTA',
             date: yesterday,
             event_type: 'ENTRADA'
         },
@@ -488,52 +528,77 @@ async function triggerYesterdayPendingReport(normalizedToday: Date, brazilNow: D
         },
         orderBy: [
             { collaborator: { posto: 'asc' } },
-            { collaborator: { departamento: 'asc' } }
+            { collaborator: { departamento: 'asc' } },
+            { expected_time: 'asc' }
         ]
     });
 
-    if (pendingCycles.length === 0) {
-        console.log('[Nexus] ⏭️ No pending exceptions from yesterday to report.');
-        // Still mark as sent to avoid repeated checks
-        await prisma.nexusConfig.upsert({
-            where: { key: 'LAST_YESTERDAY_REPORT_DAY' },
-            update: { value: todayStr },
-            create: { key: 'LAST_YESTERDAY_REPORT_DAY', value: todayStr }
-        });
+    // Filtra apenas colaboradores/contratos autorizados nas regras do grupo da mesa
+    const allowedCycles: typeof allYesterdayCycles = [];
+    for (const cycle of allYesterdayCycles) {
+        if (await isCollabAllowedForGroupAlert(cycle.collaborator)) {
+            allowedCycles.push(cycle);
+        }
+    }
+
+    const totalScheduled = allowedCycles.length;
+    const completedCycles = allowedCycles.filter(c => c.status === 'CONCLUIDO' || c.completed_at !== null);
+    // Pendências: ciclos não concluídos e sem data de batida (inclui ENCERRADO e EM_ALERTA)
+    const pendingCycles = allowedCycles.filter(c => c.status !== 'CONCLUIDO' && !c.completed_at);
+
+    if (totalScheduled === 0) {
+        console.log('[Nexus] ⏭️ Nenhum ciclo de escala encontrado para o dia de ontem nos contratos selecionados.');
+        if (!forceSend) {
+            await prisma.nexusConfig.upsert({
+                where: { key: 'LAST_YESTERDAY_REPORT_DAY' },
+                update: { value: todayStr },
+                create: { key: 'LAST_YESTERDAY_REPORT_DAY', value: todayStr }
+            });
+        }
         return;
     }
 
-    // Grouping
-    const groups: Record<string, Record<string, any[]>> = {};
-    pendingCycles.forEach(cycle => {
-        const posto = cycle.collaborator?.posto || 'GERAL';
-        const depto = cycle.collaborator?.departamento || 'NÃO INFORMADO';
-        
-        if (!groups[posto]) groups[posto] = {};
-        if (!groups[posto][depto]) groups[posto][depto] = [];
-        
-        groups[posto][depto].push(cycle);
-    });
-
-    let message = `📋 *NEXUS — RELATÓRIO GERENCIAL* 📋\n` +
-                  `⚠️ *PENDÊNCIAS DE ONTEM (${yesterdayStr})*\n` +
+    let message = `📋 *NEXUS — RESUMO DIÁRIO DO DIA ANTERIOR* 📋\n` +
+                  `📅 *Data de Referência:* ${yesterdayStr}\n` +
                   `━━━━━━━━━━━━━━━━━━━━━━\n` +
-                  `Supervisores, favor providenciar as justificativas para as ausências abaixo no sistema:\n\n`;
+                  `📊 *Consolidado Operacional:*\n` +
+                  `• Previstos na Escala: *${totalScheduled}*\n` +
+                  `• Pontos Batidos: *${completedCycles.length}*\n` +
+                  `• Ausências / Não Batidos: *${pendingCycles.length}*\n` +
+                  `━━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
-    for (const [posto, deptos] of Object.entries(groups)) {
-        message += `📍 *POSTO: ${posto.toUpperCase()}*\n`;
-        for (const [depto, cycles] of Object.entries(deptos)) {
-            message += `  • *${depto}*:\n`;
-            cycles.forEach(c => {
-                const timeStr = c.expected_time ? format(new Date(c.expected_time.getTime() - 3 * 60 * 60 * 1000), 'HH:mm') : '--:--';
-                message += `    - ${c.collaborator?.name} (Entrada: ${timeStr})\n`;
-            });
+    if (pendingCycles.length === 0) {
+        message += `✅ *100% de Conformidade!*\n` +
+                   `Todos os colaboradores escalados registraram o ponto normalmente ontem.\n`;
+    } else {
+        message += `⚠️ *RELAÇÃO DE PENDÊNCIAS POR POSTO:*\n\n`;
+        // Grouping por Posto -> Depto
+        const groups: Record<string, Record<string, any[]>> = {};
+        pendingCycles.forEach(cycle => {
+            const posto = cycle.collaborator?.posto || 'GERAL';
+            const depto = cycle.collaborator?.departamento || 'NÃO INFORMADO';
+            
+            if (!groups[posto]) groups[posto] = {};
+            if (!groups[posto][depto]) groups[posto][depto] = [];
+            
+            groups[posto][depto].push(cycle);
+        });
+
+        for (const [posto, deptos] of Object.entries(groups)) {
+            message += `📍 *POSTO: ${posto.toUpperCase()}*\n`;
+            for (const [depto, cycles] of Object.entries(deptos)) {
+                message += `  • *${depto}*:\n`;
+                cycles.forEach(c => {
+                    const timeStr = c.expected_time ? format(new Date(c.expected_time.getTime() - 3 * 60 * 60 * 1000), 'HH:mm') : '--:--';
+                    message += `    - ${c.collaborator?.name} (Previsto: ${timeStr})\n`;
+                });
+            }
+            message += `\n`;
         }
-        message += `\n`;
-    }
 
-    message += `🛑 *Total de Justificativas Pendentes: ${pendingCycles.length}*\n` +
-               `🔗 _Link para lançamento: https://mesa-de-opera-es.vercel.app/dashboard_`;
+        message += `🛑 *Total de Pendências: ${pendingCycles.length}*\n` +
+                   `🔗 _Acesso ao sistema: https://mesa-de-opera-es.vercel.app/dashboard_`;
+    }
 
     const success = await sendWhatsAppMessage('', message);
     

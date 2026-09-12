@@ -15,7 +15,8 @@ import {
     BellRing,
     ChevronLeft,
     PanelLeftClose,
-    PanelLeftOpen
+    PanelLeftOpen,
+    SlidersHorizontal
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -42,6 +43,7 @@ export default function NexusSidebar() {
     const menuItems = [
         { name: 'Monitor de Exceções', href: '/dashboard', icon: Home, roles: ['ADMIN', 'OPERATOR', 'MANAGER', 'CLIENT'] },
         { name: 'Colaboradores', href: '/dashboard/cleaners', icon: Users, roles: ['ADMIN', 'OPERATOR', 'MANAGER'] },
+        { name: 'Filtros da Mesa', href: '/dashboard/nexus/notifications-filter', icon: SlidersHorizontal, roles: ['ADMIN', 'OPERATOR', 'MANAGER'] },
         { name: 'Histórico de Alertas', href: '/dashboard/nexus/history', icon: History, roles: ['ADMIN', 'MANAGER', 'CLIENT'] },
         { name: 'Configurações', href: '/dashboard/nexus/settings', icon: Settings, roles: ['ADMIN'] },
     ];
