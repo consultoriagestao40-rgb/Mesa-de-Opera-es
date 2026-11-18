@@ -7,29 +7,35 @@ import prisma from './prisma';
  */
 
 let lastSendTimestamp = 0;
+let nexusQueueChain: Promise<any> = Promise.resolve();
 
 /**
- * Função utilitária para garantir intervalo humano mínimo entre mensagens (Anti-Bloqueio).
- * Aguarda entre minMs e maxMs (default: 6 a 12 segundos) caso a última mensagem tenha
- * sido enviada recentemente.
+ * Função utilitária com enfileiramento sequencial obrigatório (Anti-Bloqueio).
+ * Garante retardo humano estrito de 5 a 10 segundos entre cada envio,
+ * impedindo que disparo para grupo e disparo para colaborador ocorram no mesmo instante.
  */
-export async function enforceAntiSpamDelay(minMs: number = 6000, maxMs: number = 11000): Promise<void> {
-    const now = Date.now();
-    const timeSinceLast = now - lastSendTimestamp;
-    const targetDelay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+export async function enforceAntiSpamDelay(minMs: number = 5000, maxMs: number = 10000): Promise<void> {
+    const nextExecution = nexusQueueChain.then(async () => {
+        const now = Date.now();
+        const timeSinceLast = now - lastSendTimestamp;
+        const targetDelay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
 
-    if (timeSinceLast < targetDelay) {
-        const waitTime = targetDelay - timeSinceLast;
-        console.log(`[Anti-Spam] 🛡️ Aguardando ${Math.round(waitTime / 1000)}s antes do próximo envio de WhatsApp...`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-    }
-    lastSendTimestamp = Date.now();
+        if (timeSinceLast < targetDelay && lastSendTimestamp > 0) {
+            const waitTime = targetDelay - timeSinceLast;
+            console.log(`[Anti-Spam Nexus] 🛡️ Retardo ativo: aguardando ${(waitTime / 1000).toFixed(1)}s antes do próximo envio...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+        lastSendTimestamp = Date.now();
+    });
+
+    nexusQueueChain = nextExecution.catch(() => {});
+    return nextExecution;
 }
 
 export async function sendWhatsAppMessage(to: string, message: string) {
     try {
-        // Enforce anti-spam throttle
-        await enforceAntiSpamDelay(6000, 10000);
+        // Enforce anti-spam throttle (5 a 10s)
+        await enforceAntiSpamDelay(5000, 10000);
 
         // Fetch config from database for Z-API
         const configs = await prisma.nexusConfig.findMany();
