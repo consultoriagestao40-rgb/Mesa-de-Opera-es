@@ -172,8 +172,9 @@ export async function processNexusCycle(targetDateStr?: string) {
             }
         }
 
-        // --- 4. TRIGGER DAILY SUPERVISOR REPORT (8:00 AM) ---
-        await triggerYesterdayPendingReport(normalizedToday, brazilNow);
+        // --- 4. TRIGGER DAILY SUPERVISOR REPORT (Desativado conforme diretriz anti-bloqueio) ---
+        // Resumos desativados para evitar envios volumosos repetitivos
+        // await triggerYesterdayPendingReport(normalizedToday, brazilNow);
 
         return { success: true, timestamp: brazilNow };
     } catch (error: any) {

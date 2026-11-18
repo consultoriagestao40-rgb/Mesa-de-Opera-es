@@ -6,8 +6,31 @@ import prisma from './prisma';
  * Focado especificamente no monitoramento do Nexus Operacional.
  */
 
+let lastSendTimestamp = 0;
+
+/**
+ * Função utilitária para garantir intervalo humano mínimo entre mensagens (Anti-Bloqueio).
+ * Aguarda entre minMs e maxMs (default: 6 a 12 segundos) caso a última mensagem tenha
+ * sido enviada recentemente.
+ */
+export async function enforceAntiSpamDelay(minMs: number = 6000, maxMs: number = 11000): Promise<void> {
+    const now = Date.now();
+    const timeSinceLast = now - lastSendTimestamp;
+    const targetDelay = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+
+    if (timeSinceLast < targetDelay) {
+        const waitTime = targetDelay - timeSinceLast;
+        console.log(`[Anti-Spam] 🛡️ Aguardando ${Math.round(waitTime / 1000)}s antes do próximo envio de WhatsApp...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    lastSendTimestamp = Date.now();
+}
+
 export async function sendWhatsAppMessage(to: string, message: string) {
     try {
+        // Enforce anti-spam throttle
+        await enforceAntiSpamDelay(6000, 10000);
+
         // Fetch config from database for Z-API
         const configs = await prisma.nexusConfig.findMany();
         const instanceId = configs.find(c => c.key === 'ZAPI_INSTANCE_ID')?.value || process.env.ZAPI_INSTANCE_ID;
